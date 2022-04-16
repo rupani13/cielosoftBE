@@ -2,7 +2,7 @@
 Backend
 
 **********************
-Run the application
+```Run the application
 
 python3 -m venv .venv
 
@@ -20,3 +20,5 @@ python manage.py collectstatic
 
 # create super user
 super user: python3 manage.py createsuperuser
+
+```
