@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class SlidersConfig(AppConfig):
-    name = 'sliders'
+class SliderConfig(AppConfig):
+    name = 'slider'
