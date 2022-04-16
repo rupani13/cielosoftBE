@@ -30,7 +30,7 @@ urlpatterns = [
     path('api/userCollection/', include('usercollection.urls', 'usercollection_api')),
     path('api/userActivity/', include('useractivity.urls', 'useractivity_api')),
     path('api/userProfile/', include('userprofile.urls', 'userprofile_api')),
-    path('api/sliders/', include('sliders.urls', 'sliders_api')),
+    path('api/slider/', include('slider.urls', 'slider_api')),
 ] + static(settings.MEDIA_URL, document_root= settings.MEDIA_ROOT)
 
 # if settings.DEBUG:
