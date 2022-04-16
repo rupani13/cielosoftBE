@@ -9,7 +9,7 @@ class TypeState(ChoiceEnum):
     book        = "Book"
     latest      = "Best Deal"
 
-class Sliders(models.Model):
+class Slider(models.Model):
     slider_id               = models.BigIntegerField
     slider_url              = models.ImageField(upload_to = Image_Path, default = '')
     type_slider             = EnumChoiceField(enum_class=TypeState , default=TypeState.book)
