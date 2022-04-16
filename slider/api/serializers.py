@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from sliders.models import Sliders
+from slider.models import Slider
 
 # UserActivity
 # ------------------------------------------------
 class SliderSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Sliders
+        model = Slider
         fields = '__all__'
