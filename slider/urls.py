@@ -1,7 +1,7 @@
 from django.urls import path
-from sliders.views import SliderView
+from slider.views import SliderView
 
-app_name = 'sliders'
+app_name = 'slider'
 
 urlpatterns = [
 	path('', SliderView.as_view()),
