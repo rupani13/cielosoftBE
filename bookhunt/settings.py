@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'useractivity',
     'usercollection',
     'userprofile',
-    'sliders',
+    'slider',
     'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
