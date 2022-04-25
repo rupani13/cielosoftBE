@@ -224,6 +224,7 @@ class ChangePasswordView(UpdateAPIView):
 @permission_classes([])
 @authentication_classes([])
 def login_firebase_view(request):
+    error = {}
     username=request.data.get("username")
     email=request.data.get("email")
     provider=request.data.get("provider")
@@ -237,25 +238,32 @@ def login_firebase_view(request):
             if "phoneNumber" in user_one:
                 if user_one["phoneNumber"]==email:
                     data=proceed_to_login(request, email,username,token,provider)
-                    return Response(data)
+                    return Response(data, 200)
                 else:
-                    return Response(data)
+                    return Response(data, 200)
             else:
                 if email==user_one["email"]:
                     provider1=user_one["providerUserInfo"][0]["providerId"]
                     if user_one["emailVerified"]==1 or user_one["emailVerified"]==True or user_one["emailVerified"]=="True" or provider1=="facebook.com":
                         data=proceed_to_login(request,email,username,token,provider)
-                        return Response(data)
+                        return Response(data, 200)
                     else:
-                        return Response("Please Verify Your Email to Get Login")
+                        error['error_message'] = 'Please Verify Your Email to Get Login.'
+                        error['response'] = 'Error'
+                        return Response(error, status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    return Response("Unknown Email User")
+                    error['error_message'] = 'Unknown Email User.'
+                    error['response'] = 'Error'
+                    return Response(error, status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response("Invalid Request User Not Found")
+            error['error_message'] = 'Invalid Request User Not Found.'
+            error['response'] = 'Error'
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response(firbase_dict)
     
-
+def error_response(error):
+    
 def load_data_from_firebase_api(token):
     url = "https://identitytoolkit.googleapis.com/v1/accounts:lookup"
 
