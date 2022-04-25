@@ -224,7 +224,6 @@ class ChangePasswordView(UpdateAPIView):
 @permission_classes([])
 @authentication_classes([])
 def login_firebase_view(request):
-    error = {}
     username=request.data.get("username")
     email=request.data.get("email")
     provider=request.data.get("provider")
