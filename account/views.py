@@ -276,7 +276,7 @@ def proceed_to_login(request,email,username,token,provider):
 	}
     context = {}
     if validate_username(username)!= None and validate_email(email) != None:
-        print("heeeee")
+
         account = Account.objects.get(email=email)
         token_server = Token.objects.get(user=account)
         context['response'] = 'Successfully authenticated.'
