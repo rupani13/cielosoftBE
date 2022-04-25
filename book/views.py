@@ -96,7 +96,7 @@ class BookInfoView(APIView):
             downvote = serializers.CharField(source='book_details.downvote')
             # comments = serializers.StringRelatedField(many=True)
             comments = CommentSerializer(many=True, read_only=True)
-            author = serializers.CharField(source='author.author_name')
+            author = serializers.CharField(source='author.id')
         BookSerializer.Meta.fields = ['id', 'chapters', 'book_name', 'book_cover_url', 'view', 'upvote', 'downvote', 'book_brief_info', 'genre', 'author', 'ranking', 'comments']
         data = BookSerializer(books, many=True, context={"request": request}).data
         return Response(data)
@@ -224,7 +224,6 @@ class AddNewChapter(APIView):
             
             bookobj = Books.objects.get(id=request.data.get('bookid'))
             try:
-                print("book")
                 chapter_obj = Chapter.objects.get(book_id=book_id,
                                                      chapter_no=chapter_no)
                 chapter_obj.chapter_name=chapter_name
@@ -237,6 +236,9 @@ class AddNewChapter(APIView):
                                        book_id_id=bookobj.id, 
                                        state= State.free if int(chapter_no) <=5 else State.locked) 
             chapter_serializer = ChapterSerializer(chapter_obj).data
+            chapter_count = Chapter.objects.filter(book_id=book_id)
+            bookobj.chapters = len(chapter_count)
+            bookobj.save()
         except Books.DoesNotExist:
             chapter_serializer = {"message": "Book does not exist."}
         return Response(chapter_serializer)
@@ -268,7 +270,7 @@ def upvote(request):
             upvote = serializers.CharField(source='book_details.upvote')
             downvote = serializers.CharField(source='book_details.downvote')
             comments = CommentSerializer(many=True, read_only=True)
-            author = serializers.CharField(source='author.author_name')
+            author = serializers.CharField(source='author.id')
     BookSerializer.Meta.fields = ['id', 'book_name', 'book_cover_url', 'view', 'upvote', 'downvote', 'book_brief_info', 'genre', 'author', 'ranking', 'comments']
     data = BookSerializer(book).data
     return Response(data)
@@ -277,7 +279,7 @@ def upvote(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-# api/book/upvote/
+# api/book/downvote/
 def downvote(request):
     '''
     increases the upvote by 1
@@ -293,14 +295,15 @@ def downvote(request):
     bookdetail.downvote = downvote_count
     bookdetail.save()
     book = Books.objects.get(book_name=bookname, id=bookid)
+    
     class CommentSerializer(CommentsSerializer):
             email = serializers.CharField(source = 'user_id.email')
             username = serializers.CharField(source = 'user_id.username')
     class BookSerializer(BooksSerializer):
             upvote = serializers.CharField(source='book_details.upvote')
             downvote = serializers.CharField(source='book_details.downvote')
-            comments = serializers.CommentSerializer(many=True)
-            author = serializers.CharField(source='author.author_name')
+            comments = CommentSerializer(many=True, read_only=True)
+            author = serializers.CharField(source='author.id')
     BookSerializer.Meta.fields = ['id', 'book_name', 'book_cover_url', 'view', 'upvote', 'downvote', 'book_brief_info', 'genre', 'author', 'ranking', 'comments']
     data = BookSerializer(book).data
     return Response(data)
@@ -308,7 +311,7 @@ def downvote(request):
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-# api/book/upvote/
+# api/book/comment/
 def comment(request):
     '''
     increases the upvote by 1
@@ -328,7 +331,7 @@ def comment(request):
             upvote = serializers.CharField(source='book_details.upvote')
             downvote = serializers.CharField(source='book_details.downvote')
             comments = CommentSerializer(many=True)
-            author = serializers.CharField(source='author.author_name')
+            author = serializers.CharField(source='author.id')
     BookSerializer.Meta.fields = ['id', 'book_name', 'book_cover_url', 'view', 'upvote', 'downvote', 'book_brief_info', 'genre', 'author', 'ranking', 'comments']
     data = BookSerializer(book).data
     return Response(data)
