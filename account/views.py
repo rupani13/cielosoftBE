@@ -248,21 +248,24 @@ def login_firebase_view(request):
                         data=proceed_to_login(request,email,username,token,provider)
                         return Response(data, 200)
                     else:
-                        error['error_message'] = 'Please Verify Your Email to Get Login.'
-                        error['response'] = 'Error'
-                        return Response(error, status=status.HTTP_400_BAD_REQUEST)
+                        return Response(error_response(403), status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    error['error_message'] = 'Unknown Email User.'
-                    error['response'] = 'Error'
-                    return Response(error, status=status.HTTP_400_BAD_REQUEST)
+                    return Response(error_response(402), status=status.HTTP_400_BAD_REQUEST)
         else:
-            error['error_message'] = 'Invalid Request User Not Found.'
-            error['response'] = 'Error'
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+            return Response(error_response(401), status=status.HTTP_400_BAD_REQUEST)
     else:
         return Response(firbase_dict)
     
-def error_response(error):
+def error_response(code):
+    switcher = {
+        401: 'Invalid Request User Not Found.',
+        402: 'Unknown Email User.',
+        403: 'Please Verify Your Email to Get Login.'
+	}
+    return {
+		"error_message": switcher(code),
+		"response": 'Error'
+	}
     
 def load_data_from_firebase_api(token):
     url = "https://identitytoolkit.googleapis.com/v1/accounts:lookup"
