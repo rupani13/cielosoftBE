@@ -29,9 +29,9 @@ class UserCollectionView(APIView):
             booksid = []
         books = Books.objects.filter(id__in=booksid)
         class apibookserializer(BooksSerializer):
-            author = serializers.CharField(source='author.author_name')
+            author = serializers.CharField(source='author.id')
             genre = serializers.CharField(source='genre.genre_name')
-        apibookserializer.Meta.fields.extend(['author', 'genre', 'ranking'])
+        #apibookserializer.Meta.fields.extend(['author', 'genre', 'ranking'])
         data = apibookserializer(books, context={"request": request}, many=True).data 
         return Response(data)
     
@@ -46,7 +46,7 @@ class UserCollectionView(APIView):
             booksid = []
         books = Books.objects.filter(id__in=booksid)
         class apibookserializer(BooksSerializer):
-            author = serializers.CharField(source='author.author_name')
+            author = serializers.CharField(source='author.id')
             genre = serializers.CharField(source='genre.genre_name')
         apibookserializer.Meta.fields.extend(['author', 'genre', 'ranking'])
         data = apibookserializer(books, context={"request": request}, many=True).data
