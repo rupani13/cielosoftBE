@@ -11,35 +11,26 @@ from phonenumber_field.modelfields import PhoneNumberField
 # Create your models here.
 
 class MyAccountManager(BaseUserManager):
-    def create_user(self, email, username, password=None, name=None, nationality=None, birth_date=None, phone=None,):
+    def create_user(self, email, username, password=None, name=None,):
         if not email:
             raise ValueError('Users must have an email address')
         if not username:
             raise ValueError('Users must have a username')
         if not name:
             raise ValueError('Users must have a name')
-        if not nationality:
-            raise ValueError('Users must have a nationality')
-        if not birth_date:
-            raise ValueError('Users must have a birth_date')
-        if not phone:
-            raise ValueError('Users must have a phone')
-        
+
         user = self.model(
 			email=self.normalize_email(email),
 			username=username,
-            name=name, 
-            nationality=nationality, 
-            birth_date=birth_date,
-            phone=phone
+            name=name
 		)
         
         user.set_password(password)
         user.save(using=self._db)
         return user
     
-    def create_superuser(self, email, username, password, name, nationality, birth_date, phone):
-        user = self.create_user(email=self.normalize_email(email),password=password,username=username,name=name,nationality=nationality, birth_date=birth_date, phone=phone)
+    def create_superuser(self, email, username, password, name):
+        user = self.create_user(email=self.normalize_email(email),password=password,username=username,name=name)
         user.is_admin = True
         user.is_staff = True
         user.is_superuser = True
@@ -47,7 +38,7 @@ class MyAccountManager(BaseUserManager):
         return user
 
 class Account(AbstractBaseUser):
-    email = models.EmailField(verbose_name="email", max_length=60, unique=True)
+    email = models.CharField(verbose_name="email", max_length=60, unique=True)
     username = models.CharField(max_length=30, unique=True)
     date_joined	= models.DateTimeField(verbose_name='date joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
@@ -58,9 +49,9 @@ class Account(AbstractBaseUser):
     name = models.CharField(max_length=30, null=True, blank=True)
     nationality = CountryField(blank_label='(select country)', null=True, blank=True)
     birth_date  = models.DateField('DOB', blank=True, null=True)
-    phone = PhoneNumberField(unique = True,null=True, blank=True)
+    phone = PhoneNumberField(unique = False,null=True, blank=True)
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username', 'name', 'nationality', 'birth_date', 'phone']
+    REQUIRED_FIELDS = ['username', 'name']
     objects = MyAccountManager()
     
     def __str__(self):

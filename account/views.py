@@ -19,7 +19,7 @@ from phonenumbers.phonenumberutil import (
     national_significant_number,
     region_code_for_number,
 )
-
+import requests
 # Create your views here.
 
 # Register
@@ -27,40 +27,47 @@ from phonenumbers.phonenumberutil import (
 @permission_classes([])
 @authentication_classes([])
 def registration_view(request):
+    if request.method == 'POST':
+        data = {}
+        email = request.data.get('email', '0').lower()
+        username = request.data.get('username', '0')
+        name = request.data.get('name', '0')
+        password  = request.data.get('password', '0')
+        password2 = request.data.get('password2', '0')
+        if validate_email(email) != None:
+            data['error_message'] = 'That email is already in use.'
+            data['response'] = 'Error'
+            return Response(data, 400)
+        if validate_username(username) != None:
+            data['error_message'] = 'That username is already in use.'
+            data['response'] = 'Error'
+            return Response(data, 400)
 
-	if request.method == 'POST':
-		data = {}
-		email = request.data.get('email', '0').lower()
-  		
-		request.data['nationality'] = request.data.get('nationality', '0').upper()
-		if validate_email(email) != None:
-			data['error_message'] = 'That email is already in use.'
-			data['response'] = 'Error'
-			return Response(data, 400)
-
-		username = request.data.get('username', '0')
-		if validate_username(username) != None:
-			data['error_message'] = 'That username is already in use.'
-			data['response'] = 'Error'
-			return Response(data, 400)
-		if not validate_mobileno(request.data.get('phone', '0'), request.data['nationality']):
-			data['error_message'] = 'That phoneno is not valid one.'
-			data['response'] = 'Error'
-			return Response(data, 400)
-		serializer = RegistrationSerializer(data=request.data)
-		
-		if serializer.is_valid():
-			account = serializer.save()
-			data['response'] = 'successfully registered new user.'
-			data['email'] = account.email
-			data['username'] = account.username
-			data['pk'] = account.pk
-			token = Token.objects.get(user=account).key
-			data['token'] = token
-			UserProfile.objects.create(user_id=account)
-		else:
-			data = serializer.errors
-		return Response(data)
+        payload = {
+			"email": email,
+			"username": username,
+			"password": password,
+			"password2": password2,
+			"name": name
+		}
+        response = create_new_user(payload)
+        return Response(response)
+    
+def create_new_user(payload):
+    data = {}
+    serializer = RegistrationSerializer(data=payload)
+    if serializer.is_valid():
+        account = serializer.save()
+        data['response'] = 'successfully registered new user.'
+        data['email'] = account.email
+        data['username'] = account.username
+        data['pk'] = account.pk
+        token = Token.objects.get(user=account).key
+        data['token'] = token
+        UserProfile.objects.create(user_id=account)
+    else:
+        data = serializer.errors
+    return data
 
 def validate_mobileno(phone, code):
     phoneno = to_python(phone, region=code)
@@ -120,7 +127,9 @@ def update_account_view(request):
 		return Response(status=status.HTTP_404_NOT_FOUND)
 		
 	if request.method == 'PUT':
+		
 		serializer = AccountPropertiesSerializer(account, data=request.data)
+		
 		data = {}
 		if serializer.is_valid():
 			serializer.save()
@@ -210,3 +219,72 @@ class ChangePasswordView(UpdateAPIView):
 			return Response({"response":"successfully changed password"}, status=status.HTTP_200_OK)
 
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(('POST',))
+@permission_classes([])
+@authentication_classes([])
+def login_firebase_view(request):
+    username=request.data.get("username")
+    email=request.data.get("email")
+    provider=request.data.get("provider")
+    token=request.data.get("token")
+    firbase_dict=load_data_from_firebase_api(token)
+	
+    if "users" in firbase_dict:
+        user=firbase_dict["users"]
+        if len(user)>0:
+            user_one=user[0]
+            if "phoneNumber" in user_one:
+                if user_one["phoneNumber"]==email:
+                    data=proceed_to_login(request, email,username,token,provider)
+                    return Response(data)
+                else:
+                    return Response(data)
+            else:
+                if email==user_one["email"]:
+                    provider1=user_one["providerUserInfo"][0]["providerId"]
+                    if user_one["emailVerified"]==1 or user_one["emailVerified"]==True or user_one["emailVerified"]=="True" or provider1=="facebook.com":
+                        data=proceed_to_login(request,email,username,token,provider)
+                        return Response(data)
+                    else:
+                        return Response("Please Verify Your Email to Get Login")
+                else:
+                    return Response("Unknown Email User")
+        else:
+            return Response("Invalid Request User Not Found")
+    else:
+        return Response(firbase_dict)
+    
+
+def load_data_from_firebase_api(token):
+    url = "https://identitytoolkit.googleapis.com/v1/accounts:lookup"
+
+    payload = 'key=AIzaSyA7_JMmzzrHMmzPOe9K0YHGCsyIrF8rcD0&idToken='+token
+    headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    response = requests.post(url, headers=headers, data=payload)
+    return response.json()
+
+def proceed_to_login(request,email,username,token,provider):
+    payload = {
+		"email": request.data.get("email"),
+		"username": request.data.get("username"),
+		"name": request.data.get("username"),
+		"password": username+"ZZ_bookatease",
+		"password2":username+"ZZ_bookatease"
+	}
+    context = {}
+    if validate_username(username)!= None and validate_email(email) != None:
+        print("heeeee")
+        account = Account.objects.get(email=email)
+        token_server = Token.objects.get(user=account)
+        context['response'] = 'Successfully authenticated.'
+        context['pk'] = account.pk
+        context['email'] = email
+        context['token'] = token_server.key
+        return context
+    else:
+        data = create_new_user(payload)
+        return data
+
