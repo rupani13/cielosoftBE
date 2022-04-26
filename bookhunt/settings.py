@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
-
+from decouple import config
 from pathlib import Path
 import os
 import dj_database_url
@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve(strict=True).parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'g9v0@uq0fj5v=21k=u6^)c!zr3ny-3hktz8rdrurr@w8a=n5_7'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -135,12 +135,12 @@ DATABASES = {
 # DATABASES['default'].update(db_database)
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'd6ceik701d8p6k',
-#         'USER': 'ksbuphtfqbexfj',
-#         'PASSWORD': '1fef310c68ee73b7a87dc9529973c5a2b76e46b598040bc3b28835a4d37277cb',
-#         'HOST': 'ec2-52-214-125-106.eu-west-1.compute.amazonaws.com',
-#         'PORT': '5432',
+#         'ENGINE': config('SECRET_KEY'),
+#         'NAME': config('NAME'),
+#         'USER': config('USER'),
+#         'PASSWORD': config('PASSWORD'),
+#         'HOST': config('HOST'),
+#         'PORT': config('PORT'),
 #     }
 # }
 
@@ -175,8 +175,8 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
-
+API_URL = config('API_URL')
+API_KEY = config('API_KEY')
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
