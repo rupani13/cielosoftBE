@@ -267,9 +267,9 @@ def error_response(code):
 	}
     
 def load_data_from_firebase_api(token):
-    url = "https://identitytoolkit.googleapis.com/v1/accounts:lookup"
+    url = settings.API_URL
 
-    payload = 'key=AIzaSyA7_JMmzzrHMmzPOe9K0YHGCsyIrF8rcD0&idToken='+token
+    payload = 'key='+settings.API_KEY+'&idToken='+token
     headers = {
         'Content-Type': 'application/x-www-form-urlencoded'
     }
