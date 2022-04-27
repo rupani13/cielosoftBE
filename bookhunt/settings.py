@@ -135,11 +135,9 @@ WSGI_APPLICATION = 'bookhunt.wsgi.application'
 # db_database = dj_database_url.config(conn_max_age=600)
 # DATABASES['default'].update(db_database)
 DATABASES = {
-    'default': {
-        dj_database_url.config(
+    'default': dj_database_url.config(
             default=config('DATABASE_URL')
         )
-    }
 }
 
 # Password validation
