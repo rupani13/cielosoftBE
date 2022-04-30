@@ -1,5 +1,7 @@
 from django.urls import path
-from book.views import *
+from book.views import (BookDetailsView, AddNewBook, BooksView, BookReadView, 
+BookInfoView, upvote, downvote, comment, search, LatestView, UnLockBookChapterView, AddNewChapter,
+BookmarkBook)
 
 app_name = 'book'
 
@@ -17,4 +19,5 @@ urlpatterns = [
     path('latest/', LatestView.as_view()),
     path('unlockbookchapter/', UnLockBookChapterView.as_view()),
     path('addNewChapter', AddNewChapter.as_view()),
+    path('bookmark', BookmarkBook.as_view()),
 ]

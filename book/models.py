@@ -3,6 +3,7 @@ from enumchoicefield import ChoiceEnum, EnumChoiceField
 from author.models import Author
 from genre.models import Genre
 from languages.fields import LanguageField
+from account.models import Account
 # Create your models here.
 
 class State(ChoiceEnum):
@@ -43,6 +44,7 @@ class Books(models.Model):
     book_details            = models.OneToOneField(BookDetails, on_delete=models.CASCADE, default=1)
     language                = LanguageField(default='en', max_length=100)
     status                  = EnumChoiceField(enum_class=BookStatus , default=BookStatus.draft)
+    bookmark                = models.ManyToManyField(Account)
 
     def __str__(self):
         return self.book_name

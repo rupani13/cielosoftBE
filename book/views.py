@@ -416,3 +416,31 @@ class UnLockBookChapterView(APIView):
             except UserProfile.DoesNotExist:
                 return Response({'message':'No Such user exist. Kindly login first. Or Server issue','login': False, 'unlock': False})
         return Response({'message': 'No Such user exist. Kindly login first.', 'login': False, 'unlock': False})
+
+
+class BookmarkBook(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+
+    def get(self, request):
+        try:
+            book = Books.objects.filter(bookmark=request.user)
+        except Books.DoesNotExist:
+            book = []
+        return Response(BooksSerializer(book, many=True).data)
+
+    def post(self, request):
+        bookid = request.data.get('bookid')
+        print(bookid)
+        try:
+            book = Books.objects.get(id=bookid)
+            try:
+                book = Books.objects.get(id=bookid, bookmark__id=request.user.id)
+                book.bookmark.remove(Account.objects.get(id = request.user.id))
+            except Books.DoesNotExist:
+                book.bookmark.add(Account.objects.get(id = request.user.id))  
+            book = Books.objects.filter(bookmark__id=request.user.id)
+            return Response(BooksSerializer(book, many=True).data)
+        except Books.DoesNotExist:
+            book = {'error': 'Book does not exist. You cannot bookmark this.'}
+            return Response(book)
