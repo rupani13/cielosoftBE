@@ -1,7 +1,7 @@
 from django.urls import path
 from book.views import (BookDetailsView, AddNewBook, BooksView, BookReadView, 
 BookInfoView, upvote, downvote, comment, search, LatestView, UnLockBookChapterView, AddNewChapter,
-BookmarkBook)
+BookmarkBook, ChaptersByBook)
 
 app_name = 'book'
 
