@@ -45,7 +45,10 @@ class Books(models.Model):
     language                = LanguageField(default='en', max_length=100)
     status                  = EnumChoiceField(enum_class=BookStatus , default=BookStatus.draft)
     bookmark                = models.ManyToManyField(Account)
-
+    book_preface            = models.FileField(upload_to = 'static/book_preface', default = '')
+    book_copyright          = models.FileField(upload_to = 'static/book_copyright', default = '')
+    book_acknowledgement    = models.FileField(upload_to = 'static/book_acknowledgement', default = '')
+    policy_agreement        = models.BooleanField(default=False)
     def __str__(self):
         return self.book_name
 
