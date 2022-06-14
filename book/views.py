@@ -1,3 +1,6 @@
+from errno import errorcode
+from logging import error
+from rest_framework import serializers
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Q
 from rest_framework.filters import (
@@ -20,8 +23,9 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from book.models import *
-from book.api.serializers import *
+from book.models import (Books, Chapter, BookDetails, BookStatus, State)
+from author.models import Author
+from book.api.serializers import (BookDetailsSerializer, BooksSerializer, ChapterSerializer)
 from tools.pagination import StandardResultsSetPagination
 from account.models import Account
 from comment.models import Comments
@@ -94,9 +98,9 @@ class BookInfoView(APIView):
         class BookSerializer(BooksSerializer):
             upvote = serializers.CharField(source='book_details.upvote')
             downvote = serializers.CharField(source='book_details.downvote')
-            # comments = serializers.StringRelatedField(many=True)
             comments = CommentSerializer(many=True, read_only=True)
-            author = serializers.CharField(source='author.id')
+            genre = serializers.CharField(source='genre.genre_name')
+            author = serializers.CharField(source='author.account.name')
         BookSerializer.Meta.fields = ['id', 'chapters', 'book_name', 'book_cover_url', 'view', 'upvote', 'downvote', 'book_brief_info', 'genre', 'author', 'ranking', 'comments']
         data = BookSerializer(books, many=True, context={"request": request}).data
         return Response(data)
@@ -187,8 +191,15 @@ class AddNewBook(APIView):
         genre = request.data.get('genre').capitalize()
         language = request.data.get('language')
         genre_obj = Genre.objects.get(genre_name = genre)
+        book_preface = request.data.get('book_intro')
+        author_intro = request.data.get('author_intro')
+        book_copyright = request.data.get('copyright')
+        book_acknowledgement = request.data.get('acknowledgement')
+        policy_agreement = request.data.get('policy_agreement')
         try:
             author = Author.objects.get(account_id=request.user.id)
+            author.into = author_intro
+            author.save()
             if request.data.get('bookid'):
                 bookobj = Books.objects.get(author=request.user.id, id=request.data.get('bookid'))
                 bookobj.book_name = book_name
@@ -197,13 +208,20 @@ class AddNewBook(APIView):
                 bookobj.genre_id = genre_obj.id
                 bookobj.language = language.capitalize()
                 bookobj.status = BookStatus.review
+                bookobj.book_preface = book_preface
+                bookobj.book_copyright = book_copyright
+                bookobj.book_acknowledgement = book_acknowledgement
+                bookobj.policy_agreement = policy_agreement
                 bookobj.save()
             else:
                 bookdetails_obj = BookDetails.objects.create(view=0,upvote=0,downvote=0)
                 bookobj = Books.objects.create(book_name=book_name, book_cover_url = book_cover_url,
                                     book_brief_info = book_brief_info,genre_id = genre_obj.id,
                                     language = language, status = BookStatus.draft, author_id=author.id, 
-                                    book_details_id=bookdetails_obj.id)
+                                    book_details_id=bookdetails_obj.id,
+                                    book_preface=book_preface, book_copyright=book_copyright, 
+                                    book_acknowledgement=book_acknowledgement, 
+                                    policy_agreement=policy_agreement)
             book_data = BooksSerializer(bookobj).data
 
         except Author.DoesNotExist:
@@ -344,10 +362,13 @@ def search(request):
     if bookname:
         data = BookLatestSerializer(Books.objects.filter(book_name__icontains = bookname), context={"request": request}, many=True).data
     elif authorname:
-        authors = Author.objects.filter(author_name__icontains = authorname).values_list('id', flat=True)
-        for item in authors: print(item)
-        BooksSerializer.Meta.fields.extend(['author', 'ranking'])
-        data = BooksLatestSerializer(Books.objects.filter(author__id__in = authors), many=True, context={"request": request}).data
+        data = []
+        accounts = Account.objects.filter(name__icontains=authorname)
+        for acc  in accounts:
+            authors = Author.objects.filter(account = acc).values_list('id', flat=True)
+            for item in authors:
+                books = BookLatestSerializer(Books.objects.filter(author = item), many=True, context={"request": request}).data
+                data.append(books)
     return Response(data)
 
 # get the latest books deal
@@ -442,5 +463,21 @@ class BookmarkBook(APIView):
             book = Books.objects.filter(bookmark__id=request.user.id)
             return Response(BooksSerializer(book, many=True).data)
         except Books.DoesNotExist:
-            book = {'error': 'Book does not exist. You cannot bookmark this.'}
+            book = {'message': 'Book does not exist. You cannot bookmark this.', 'error': 400}
             return Response(book)
+
+class ChaptersByBook(APIView):
+    def post(self, request):
+        BooksSerializer.Meta.fields = ['book_preface', 'book_copyright', 'book_acknowledgement']
+        try:
+            book = Books.objects.get(id=request.data.get('bookid'))
+            book_response = BooksSerializer(book).data
+            try:
+                ChapterSerializer.Meta.fields = ['chapter_no', 'chapter_name', 'state']
+                data = Chapter.objects.filter(book_id = book)
+                response = {**book_response, 'chapter':  ChapterSerializer(data, many=True).data}
+            except Chapter.DoesNotExist:
+                response = {**book_response, 'chapter': []}
+        except Books.DoesNotExist:
+            response = {'error': 'Kindly Select the apporiate book.', 'code': 400}
+        return Response(response)
