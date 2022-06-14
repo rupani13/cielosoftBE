@@ -4,7 +4,6 @@
 __pycache__
 *.pyc
 *.sqlite3
-migrations
 .env 
 .venv 
 env/ 
@@ -12,3 +11,9 @@ venv/
 ENV/ 
 env.bak/ 
 venv.bak/
+*/migrations/*
+!*/migrations/__init__.py
+static/*
+.idea/*
+media/*
+migrations
