@@ -8,7 +8,7 @@ class Author(models.Model):
     app_id                  = models.BigIntegerField
     profilepicture          = models.ImageField(upload_to = 'static/profile', default = '')
     hobbies                 = models.TextField(blank=True, null=True)
-
+    intro                   = models.TextField(blank=True, null=True)
     def __str__(self):
         return self.account.name
     
