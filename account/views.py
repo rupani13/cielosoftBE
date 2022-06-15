@@ -176,6 +176,7 @@ class ObtainAuthTokenView(APIView):
             context['pk'] = account.pk
             context['email'] = email.lower()
             context['token'] = token.key
+            context['username'] = account.username
         else:
             context['response'] = 'Error'
             context['error_message'] = 'Invalid credentials'
@@ -343,6 +344,7 @@ def proceed_to_login(
         context['pk'] = account.pk
         context['email'] = email
         context['token'] = token_server.key
+	context['username'] = account.username
         return context
     else:
         data = create_new_user(payload)
