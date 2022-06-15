@@ -344,7 +344,7 @@ def proceed_to_login(
         context['pk'] = account.pk
         context['email'] = email
         context['token'] = token_server.key
-	context['username'] = account.username
+        context['username'] = account.username
         return context
     else:
         data = create_new_user(payload)
