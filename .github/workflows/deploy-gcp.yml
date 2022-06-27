@@ -7,7 +7,7 @@ on:
 
 env:
   SECRET_KEY: ${{ secrets.SECRET_KEY }}
-  PORT: '8080'
+  PORT: '5432'
   API_URL: ${{ secrets.API_URL }}
   API_KEY: ${{ secrets.API_KEY }}
   DEBUG: False
@@ -30,15 +30,24 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
+      - name: Set env variables
+        run: |
+          sed -i "s#<SECRET_KEY>#$SECRET_KEY#g" app.yaml
+          sed -i "s#<API_URL>#$API_URL#g" app.yaml
+          sed -i "s#<API_KEY>#$API_KEY#g" app.yaml
+          sed -i "s#<DATABASE_URL>#$DATABASE_URL#g" app.yaml
+      - name: Check app file
+        run: cat app.yaml
       - name: Install requirements
         run: |
           pip install -r requirements.txt
+          
 
-      # - id: 'auth'
-      #   uses: 'google-github-actions/auth@v0'
-      #   with:
-      #     credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
-      # - name: 'Set up Cloud SDK'
-      #   uses: 'google-github-actions/setup-gcloud@v0'
+      - id: 'auth'
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
       # - name: Deploy
       #   run: gcloud app deploy --quiet
