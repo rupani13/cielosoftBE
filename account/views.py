@@ -258,48 +258,54 @@ def login_firebase_view(request):
     email = request.data.get('email')
     provider = request.data.get('provider')
     token = request.data.get('token')
-    print ('login_firebase_view')
-    firbase_dict = load_data_from_firebase_api(token)
-    print (firbase_dict)
-    if 'users' in firbase_dict:
-        user = firbase_dict['users']
+    try: 
+        data = proceed_to_login(request, email,
+                                    username, token, provider)
+    except Exception:
+        return Response(error_response(400), status=status.HTTP_400_BAD_REQUEST)
+    return Response(data, 200)
+    # print ('login_firebase_view')
+    # firbase_dict = load_data_from_firebase_api(token)
+    # print (firbase_dict)
+    # if 'users' in firbase_dict:
+    #     user = firbase_dict['users']
 
-        if len(user) > 0:
-            user_one = user[0]
-            if 'phoneNumber' in user_one:
-                if user_one['phoneNumber'] == email:
-                    data = proceed_to_login(request, email, username,
-                            token, provider)
+    #     if len(user) > 0:
+    #         user_one = user[0]
+    #         if 'phoneNumber' in user_one:
+    #             if user_one['phoneNumber'] == email:
+    #                 data = proceed_to_login(request, email, username,
+    #                         token, provider)
 
-                    return Response(data, 200)
-                else:
-                    return Response(data, 200)
-            else:
-                if email == user_one['email']:
-                    provider1 = user_one['providerUserInfo'
-                            ][0]['providerId']
-                    if user_one['emailVerified'] == 1 \
-                        or user_one['emailVerified'] == True \
-                        or user_one['emailVerified'] == 'True' \
-                        or provider1 == 'facebook.com':
-                        data = proceed_to_login(request, email,
-                                username, token, provider)
-                        return Response(data, 200)
-                    else:
-                        return Response(error_response(403),
-                                status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response(error_response(402),
-                                    status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(error_response(401),
-                            status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return Response(firbase_dict)
+    #                 return Response(data, 200)
+    #             else:
+    #                 return Response(data, 200)
+    #         else:
+    #             if email == user_one['email']:
+    #                 provider1 = user_one['providerUserInfo'
+    #                         ][0]['providerId']
+    #                 if user_one['emailVerified'] == 1 \
+    #                     or user_one['emailVerified'] == True \
+    #                     or user_one['emailVerified'] == 'True' \
+    #                     or provider1 == 'facebook.com':
+    #                     data = proceed_to_login(request, email,
+    #                             username, token, provider)
+    #                     return Response(data, 200)
+    #                 else:
+    #                     return Response(error_response(403),
+    #                             status=status.HTTP_400_BAD_REQUEST)
+    #             else:
+    #                 return Response(error_response(402),
+    #                                 status=status.HTTP_400_BAD_REQUEST)
+    #     else:
+    #         return Response(error_response(401),
+    #                         status=status.HTTP_400_BAD_REQUEST)
+    # else:
+    #     return Response(firbase_dict)
 
 
 def error_response(code):
-    switcher = {401: 'Invalid Request User Not Found.',
+    switcher = {400: 'Invalid Request User Not Found.',
                 402: 'Unknown Email User.',
                 403: 'Please Verify Your Email to Get Login.'}
     return {'error_message': switcher(code), 'response': 'Error'}
