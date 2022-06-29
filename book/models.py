@@ -44,7 +44,7 @@ class Books(models.Model):
     book_details            = models.OneToOneField(BookDetails, on_delete=models.CASCADE, default=1)
     language                = LanguageField(default='en', max_length=100)
     status                  = EnumChoiceField(enum_class=BookStatus , default=BookStatus.draft)
-    bookmark                = models.ManyToManyField(Account)
+    bookmark                = models.ManyToManyField(Account, blank=True)
     book_preface            = models.FileField(upload_to = 'static/book_preface', default = '')
     book_copyright          = models.FileField(upload_to = 'static/book_copyright', default = '')
     book_acknowledgement    = models.FileField(upload_to = 'static/book_acknowledgement', default = '')
