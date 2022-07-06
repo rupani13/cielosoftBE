@@ -176,8 +176,29 @@ API_URL = config('API_URL')
 API_KEY = config('API_KEY')
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
+# STATIC_URL = 'static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, "static")
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# MEDIA_URL= "/media/"
+# MEDIA_ROOT= os.path.join(BASE_DIR, 'media/')
+
+from google.oauth2 import service_account
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    os.path.join(BASE_DIR, "bookatease-cred.json")
+)
+
+STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-MEDIA_URL= "/media/"
-MEDIA_ROOT= os.path.join(BASE_DIR, 'media/')
+
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = 'bae_gcp_bucket'
+GS_PROJECT_ID = 'bookatease-87a6a'
+MEDIA_ROOT = 'media/'
+UPLOAD_ROOT = 'media/'
+MEDIA_URL = 'https://storage.googleapis.com/{}/'.format(GS_BUCKET_NAME)
+GOOGLE_CLOUD_STORAGE_DEFAULT_CACHE_CONTROL = 'public, max-age: 7200'
+FILE_UPLOAD_HANDLERS = (
+    'django.core.files.uploadhandler.MemoryFileUploadHandler',
+)
