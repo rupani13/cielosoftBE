@@ -99,6 +99,7 @@ class BookInfoView(APIView):
         class BookSerializer(BooksSerializer):
             upvote = serializers.CharField(source='book_details.upvote')
             downvote = serializers.CharField(source='book_details.downvote')
+            view = serializers.CharField(source='book_details.view')
             comments = CommentSerializer(many=True, read_only=True)
             genre = serializers.CharField(source='genre.genre_name')
             author = serializers.CharField(source='author.account.name')
