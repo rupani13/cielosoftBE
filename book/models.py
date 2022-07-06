@@ -37,7 +37,7 @@ class Books(models.Model):
     published_time          = models.DateField(blank=True, null=True)
     user_count              = models.IntegerField(default=0)
     ranking                 = models.IntegerField(default=0)
-    book_brief_info         = models.CharField(max_length=1024)
+    book_brief_info         = models.TextField()
     genre                   = models.ForeignKey(Genre, on_delete=models.CASCADE, default=None)
     # author                  = models.ForeignKey(Author, on_delete=models.CASCADE, default=1)
     author                  = models.ForeignKey(Author, related_name='books' ,on_delete=models.CASCADE, default=None)
