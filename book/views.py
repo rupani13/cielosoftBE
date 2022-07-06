@@ -37,6 +37,7 @@ from comment.api.serializers import CommentsSerializer
 from tools.customserializers import BookLatestSerializer
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from.forms import ChapterForm
+from genre.models import Genre
 # Create your views here.
 # Books Detials
 # -----------------------------------------------
