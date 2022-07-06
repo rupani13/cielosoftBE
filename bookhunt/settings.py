@@ -184,7 +184,7 @@ API_KEY = config('API_KEY')
 
 from google.oauth2 import service_account
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(BASE_DIR, "bookatease-cred.json")
+    "/home/user/Downloads/service-account-file.json"
 )
 
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
