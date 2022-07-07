@@ -184,14 +184,13 @@ API_KEY = config('API_KEY')
 
 from google.oauth2 import service_account
 import json
-# json_data = json.loads(config('GOOGLE_CREDENTIALS'))
-# json_data['private_key'] = json_data['private_key'].replace('\\n', '\n')
-# GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
-#     json_data
-# )
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    config('GOOGLE_APPLICATION_CREDENTIALS'), scopes=[u'https://www.googleapis.com/auth/gmail.send']
+json_data = json.loads(config('GC_CRED'))
+GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
+    json_data
 )
+# GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+#     config('GOOGLE_APPLICATION_CREDENTIALS'), scopes=[u'https://www.googleapis.com/auth/gmail.send']
+# )
 
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 STATIC_URL = 'static/'
