@@ -185,6 +185,7 @@ API_KEY = config('API_KEY')
 from google.oauth2 import service_account
 import json
 json_data = json.loads(config('GOOGLE_CREDENTIALS'))
+json_data['private_key'] = json_data['private_key'].replace('\\n', '\n')
 GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
     json_data
 )
