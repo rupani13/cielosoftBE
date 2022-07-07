@@ -190,7 +190,7 @@ import json
 #     json_data
 # )
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    config('GOOGLE_APPLICATION_CREDENTIALS')
+    config('GOOGLE_APPLICATION_CREDENTIALS'), scopes=[u'https://www.googleapis.com/auth/gmail.send'
 )
 
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
