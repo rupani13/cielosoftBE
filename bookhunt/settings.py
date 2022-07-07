@@ -183,9 +183,14 @@ API_KEY = config('API_KEY')
 # MEDIA_ROOT= os.path.join(BASE_DIR, 'media/')
 
 from google.oauth2 import service_account
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    config('GOOGLE_APPLICATION_CREDENTIALS')
+import json
+json_data = json.loads(config('GOOGLE_CREDENTIALS'))
+GS_CREDENTIALS = service_account.Credentials.from_service_account_info(
+    json_data
 )
+# GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+#     config('GOOGLE_APPLICATION_CREDENTIALS')
+# )
 
 STATICFILES_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 STATIC_URL = 'static/'
