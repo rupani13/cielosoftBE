@@ -12,7 +12,8 @@ from genre.api.serializers import GenreSerializer
 class GenreView(APIView):
 
     def get(self, request):
-        genre_list = Genre.objects.all()
+        search = request.query_params.get('search')
+        genre_list = Genre.objects.all().order_by("genre_name").filter(genre_name__icontains=search)
         serialzer = GenreSerializer(genre_list, context={"request": request}, many=True)
         return Response(serialzer.data)
 
