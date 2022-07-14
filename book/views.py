@@ -38,9 +38,29 @@ from tools.customserializers import BookLatestSerializer
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from.forms import ChapterForm
 from genre.models import Genre
+from genre.api.serializers import GenreSerializer
+from author.api.serializers import AuthorSerializer
 # Create your views here.
 # Books Detials
 # -----------------------------------------------
+def error_response(code):
+    switcher = {
+                400: 'Invalid Request User Not Found.',
+                402: 'Unknown Email User.',
+                403: 'Please Verify Your Email to Get Login.',
+                405: 'Please login first',
+                500: 'Server Issue.',
+                201: 'chapter doesnt exist',
+                202: 'To Unlock the new chapter, You have to earn coins.',
+                203: 'select the appropriate book',
+                204: 'Chapter is already unlocked',
+                205: 'Successfully unlock the chapter',
+                206: 'Chapter is already unlocked',
+                207: 'You dont have enough coins. Earned them or Buy coins',
+                208: 'Kindly create the profile with coins',
+                209: 'No Such user exist. Kindly login first or Server issue'
+                }
+    return {'error': switcher(code), 'code': code}
 class BookDetailsView(RetrieveAPIView):
 
     queryset = BookDetails.objects.all()
@@ -90,9 +110,11 @@ class BooksView(APIView):
 
 class BookInfoView(APIView):
     # api/book/bookinfo/
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     def post(self, request):
         books = Books.objects.filter(id=request.data.get('bookid'),
-                                book_name=request.data.get('bookname'))
+                                book_name=request.data.get('bookname')) 
         class CommentSerializer(CommentsSerializer):
             email = serializers.CharField(source = 'user_id.email')
             username = serializers.CharField(source = 'user_id.username')
@@ -103,7 +125,8 @@ class BookInfoView(APIView):
             comments = CommentSerializer(many=True, read_only=True)
             genre = serializers.CharField(source='genre.genre_name')
             author = serializers.CharField(source='author.account.name')
-        BookSerializer.Meta.fields = ['id', 'chapters', 'book_name', 'book_cover_url', 'view', 'upvote', 'downvote', 'book_brief_info', 'genre', 'author', 'ranking', 'comments']
+            bookmark = True if len(Books.objects.filter(id=request.data.get('bookid'), bookmark=request.user)) else False   
+        BookSerializer.Meta.fields = ['bookmark','id', 'chapters', 'book_name', 'book_cover_url', 'view', 'upvote', 'downvote', 'book_brief_info', 'genre', 'author', 'ranking', 'comments']
         data = BookSerializer(books, many=True, context={"request": request}).data
         return Response(data)
 
@@ -172,14 +195,14 @@ class BookReadView(APIView):
                             user_act.unlocked_chapter = True
                             user_act.save()
                             return Response({'message': 'Successfully Opened.','login': True, 'unlock': True,'chapter':chapter })  
-                        return Response({'message': 'Server Issue.','login': True, 'unlock': False})                                 
-                    return Response({'message': 'To Unlock the new chapter, You have to earn coins.','login': True, 'unlock': False})
+                        return Response(**error_response(500), **{'login': True, 'unlock': False})                                 
+                    return Response(**error_response(202),**{'login': True, 'unlock': False})
                 else:
-                    return Response({'message': 'chapter doesnt exist','login': True, 'unlock': False})
+                    return Response(**error_response(201),**{'login': True, 'unlock': False})
             else:
-               return Response({'message': 'select the appropriate book','login': True, 'unlock': False})
+               return Response(**error_response(203),**{'login': True, 'unlock': False})
         else:
-            return Response({'message': 'Please login first','login': False})
+            return Response(**error_response(405),**{'login': False})
 
 
 class AddNewBook(APIView):
@@ -227,7 +250,7 @@ class AddNewBook(APIView):
             book_data = BooksSerializer(bookobj).data
 
         except Author.DoesNotExist:
-            book_data = {"message": "Turn on your writer mode first"}
+            book_data = {"error": "Turn on your writer mode first", 'code': 400}
         return Response(book_data)
     
 class AddNewChapter(APIView):
@@ -260,7 +283,7 @@ class AddNewChapter(APIView):
             bookobj.chapters = len(chapter_count)
             bookobj.save()
         except Books.DoesNotExist:
-            chapter_serializer = {"message": "Book does not exist."}
+            chapter_serializer = {"error": "Book does not exist.", 'code': 400}
         return Response(chapter_serializer)
 
 
@@ -277,7 +300,7 @@ def upvote(request):
     try:
         book = Books.objects.select_related('book_details').get(id=bookid, book_name=bookname)
     except Books.DoesNotExist:
-        return Response('no book exists')
+        return Response({'error': 'No book exists', 'code': 200})
     bookdetail = BookDetails.objects.get(id=book.book_details.id)
     upvote_count = int(bookdetail.upvote) + 1
     bookdetail.upvote = upvote_count
@@ -309,7 +332,7 @@ def downvote(request):
     try:
         book = Books.objects.select_related('book_details').get(id=bookid, book_name=bookname)
     except Books.DoesNotExist:
-        return Response('no book exists')
+        return Response({'error': 'No book exists', 'code': 200})
     bookdetail = BookDetails.objects.get(id=book.book_details.id)
     downvote_count = int(bookdetail.downvote) + 1
     bookdetail.downvote = downvote_count
@@ -342,7 +365,7 @@ def comment(request):
     try:
         book = Books.objects.get(book_name=bookname, id=bookid)
     except Books.DoesNotExist:
-        return Response('no book exists')
+        return Response({'error': 'No book exists', 'code': 200})
     Comments.objects.create(book_id=book, user_id=request.user, comment=comment)
     class CommentSerializer(CommentsSerializer):
             email = serializers.CharField(source = 'user_id.email')
@@ -359,18 +382,20 @@ def comment(request):
 
 @api_view(['POST'])
 def search(request):
-    bookname = request.data.get('bookname')
-    authorname = request.data.get('authorname')
-    if bookname:
-        data = BookLatestSerializer(Books.objects.filter(book_name__icontains = bookname), context={"request": request}, many=True).data
-    elif authorname:
-        data = []
-        accounts = Account.objects.filter(name__icontains=authorname)
-        for acc  in accounts:
-            authors = Author.objects.filter(account = acc).values_list('id', flat=True)
-            for item in authors:
-                books = BookLatestSerializer(Books.objects.filter(author = item), many=True, context={"request": request}).data
-                data.append(books)
+    search_text = request.data.get('search_text')
+    search = request.data.get('field')
+    # if bookname:
+    data = []
+    if search_text:
+        if search.upper() == 'GENRE':
+            data = GenreSerializer(Genre.objects.filter(genre_name__icontains = search_text), context={"request": request}, many=True).data
+        elif search.upper() == 'AUTHOR':
+            accounts = Account.objects.filter(name__icontains=search_text)
+            for acc  in accounts:
+                authors = AuthorSerializer(Author.objects.filter(account = acc), context={"request": request}, many=True).data
+                data.append(authors)
+        else:
+            data = BookLatestSerializer(Books.objects.filter(book_name__icontains = search_text), context={"request": request}, many=True).data
     return Response(data)
 
 # get the latest books deal
@@ -420,7 +445,7 @@ class UnLockBookChapterView(APIView):
                         #save the updated coins
                         # add this in UserActivity
                         if UnLockBookChapterView.searchBookInUserActivity(self, request.user, bookid, chapter_no) is not None:
-                            return Response({'message': 'Chapter is already unlocked', 'login': True, 'unlock': True})  
+                            return Response(**error_response(204), **{'login': True, 'unlock': True})  
                 
                         if userprofile.coins >= int(coins):
                             user_act_obj, user_act_created = UserActivity.objects.get_or_create(user_id=request.user, book_id_id=bookid, chapter=chapter_no)
@@ -431,14 +456,14 @@ class UnLockBookChapterView(APIView):
                                 user_act.save()
                                 userprofile.coins = userprofile.coins - int(coins)
                                 userprofile.save()              
-                                return Response({'message': 'Successfully unlock the chapter', 'login': True, 'unlock': True})
-                            return Response({'message': 'Chapter is already unlocked', 'login': True, 'unlock': True})
-                        return Response({'message': 'You dont have enough coins. Earned them or Buy coins', 'login': True, 'unlock': False})
-                    return Response({'message': 'Select appropriate book', 'login': True, 'unlock': False})
-                return Response({'message':'Kindly create the profile with coins', 'login': False, 'unlock': False})
+                                return Response(**error_response(205), **{'login': True, 'unlock': True})
+                            return Response(**error_response(206), **{'login': True, 'unlock': True})
+                        return Response(**error_response(207), **{'login': True, 'unlock': False})
+                    return Response(**error_response(203), **{'login': True, 'unlock': False})
+                return Response(**error_response(208), **{'login': False, 'unlock': False})
             except UserProfile.DoesNotExist:
-                return Response({'message':'No Such user exist. Kindly login first. Or Server issue','login': False, 'unlock': False})
-        return Response({'message': 'No Such user exist. Kindly login first.', 'login': False, 'unlock': False})
+                return Response(**error_response(209), **{'login': False, 'unlock': False})
+        return Response(**error_response(209), **{'login': False, 'unlock': False})
 
 
 class BookmarkBook(APIView):
@@ -454,18 +479,19 @@ class BookmarkBook(APIView):
 
     def post(self, request):
         bookid = request.data.get('bookid')
-        print(bookid)
+        
         try:
             book = Books.objects.get(id=bookid)
             try:
                 book = Books.objects.get(id=bookid, bookmark__id=request.user.id)
                 book.bookmark.remove(Account.objects.get(id = request.user.id))
             except Books.DoesNotExist:
-                book.bookmark.add(Account.objects.get(id = request.user.id))  
-            book = Books.objects.filter(bookmark__id=request.user.id)
-            return Response(BooksSerializer(book, many=True).data)
+                book.bookmark.add(Account.objects.get(id = request.user.id)) 
+                UserCollection.objects.get_or_create(user=request.user, book_id=book)
+            #book = Books.objects.filter(id=bookid, bookmark__id=request.user.id)
+            return Response(BooksSerializer(book).data)
         except Books.DoesNotExist:
-            book = {'message': 'Book does not exist. You cannot bookmark this.', 'error': 400}
+            book = {'error': 'Book does not exist. You cannot bookmark this.', 'code': 400}
             return Response(book)
 
 class ChaptersByBook(APIView):
