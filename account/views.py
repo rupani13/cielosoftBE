@@ -43,11 +43,11 @@ def registration_view(request):
         password2 = request.data.get('password2', '0')
         if validate_email(email) != None:
             data['error_message'] = 'That email is already in use.'
-            data['response'] = 'Error'
+            data['code'] = 400
             return Response(data, 400)
         if validate_username(username) != None:
             data['error_message'] = 'That username is already in use.'
-            data['response'] = 'Error'
+            data['code'] = 400
             return Response(data, 400)
 
         payload = {
@@ -119,7 +119,11 @@ def account_properties_view(request):
     try:
         account = request.user
     except Account.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        data = {
+            'error': 'Account does not exist',
+            'code': status.HTTP_404_NOT_FOUND
+        }
+        return Response(data, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         serializer = AccountPropertiesSerializer(account)
@@ -137,6 +141,10 @@ def update_account_view(request):
     try:
         account = request.user
     except Account.DoesNotExist:
+        data = {
+            'error': 'Account does not exist',
+            'code': status.HTTP_404_NOT_FOUND
+        }
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'PUT':
@@ -178,8 +186,8 @@ class ObtainAuthTokenView(APIView):
             context['token'] = token.key
             context['username'] = account.username
         else:
-            context['response'] = 'Error'
-            context['error_message'] = 'Invalid credentials'
+            context['code'] = 400
+            context['error'] = 'Invalid credentials'
 
         return Response(context)
 
@@ -226,7 +234,7 @@ class ChangePasswordView(UpdateAPIView):
 
             if not self.object.check_password(serializer.data.get('old_password'
                     )):
-                return Response({'old_password': ['Wrong password.']},
+                return Response({'error': ['Wrong password.'], 'code': 400},
                                 status=status.HTTP_400_BAD_REQUEST)
 
             # confirm the new passwords match
@@ -236,7 +244,7 @@ class ChangePasswordView(UpdateAPIView):
                 serializer.data.get('confirm_new_password')
             if new_password != confirm_new_password:
                 return Response({'new_password': ['New passwords must match'
-                                ]}, status=status.HTTP_400_BAD_REQUEST)
+                                ], 'code': 400}, status=status.HTTP_400_BAD_REQUEST)
 
             # set_password also hashes the password that the user will get
 
@@ -308,7 +316,7 @@ def error_response(code):
     switcher = {400: 'Invalid Request User Not Found.',
                 402: 'Unknown Email User.',
                 403: 'Please Verify Your Email to Get Login.'}
-    return {'error_message': switcher(code), 'response': 'Error'}
+    return {'error': switcher(code), 'code': 400}
 
 @backoff.on_exception(
     backoff.expo,
@@ -325,7 +333,7 @@ def load_data_from_firebase_api(token):
         response = requests.post(url, headers=headers, data=payload, timeout=5, verify=True)
         return response.json()
     except requests.exceptions.ConnectionError:
-        return {'status_code': 500, 'error_message': 'Connection refused'}
+        return {'code': 500, 'error': 'Connection refused'}
     
 def proceed_to_login(
     request,
