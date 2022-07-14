@@ -14,18 +14,34 @@ from author.api.serializers import AuthorSerializer, AuthorProfileSerializer
 from tools.pagination import StandardResultsSetPagination
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from account.models import Account
 # Create your views here.
 # Author
 # http://127.0.0.1:8000/api/authors/?limit=10&offset=10&page=1
 # -----------------------------------------------
+
+def error_code(code):
+    switcher = {400: 'Invalid Request User Not Found.',
+                402: 'Unknown Email User.',
+                403: 'Please Verify Your Email to Get Login.',
+                201: 'You have Reader permission only'
+                }
+    return {
+        'error': switcher[code],
+        'code': code
+    }
 class AuthorView(ListAPIView):
     queryset = Author.objects.all().order_by('id')
     serializer_class = AuthorSerializer
     pagination_class = StandardResultsSetPagination
-
+    
     def get(self, request, *args, **kwargs):
+        search = request.query_params.get('search')
         StandardResultsSetPagination.page_size=10
-        serializer = AuthorSerializer(Author.objects.all().order_by('id'), context={"request": request}, many=True)
+        if search:
+            serializer = AuthorSerializer(Author.objects.all().order_by('id').filter(account__name__icontains=search), context={"request": request}, many=True)
+        else:
+            serializer = AuthorSerializer(Author.objects.all().order_by('id'), context={"request": request}, many=True)
         page = self.paginate_queryset(serializer.data)
         return self.get_paginated_response(page)
 
@@ -67,5 +83,5 @@ class WriterCreate(APIView):
                 data = Author.objects.create(account_id = request.user.id)
             response_data = AuthorSerializer(data, context={"request": request}).data  
         else:
-            response_data = {"message": "You have Reader permission only"}
+            response_data = error_code(201)
         return Response(response_data)
