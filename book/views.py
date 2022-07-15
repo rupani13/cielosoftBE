@@ -58,7 +58,9 @@ def error_response(code):
                 206: 'Chapter is already unlocked',
                 207: 'You dont have enough coins. Earned them or Buy coins',
                 208: 'Kindly create the profile with coins',
-                209: 'No Such user exist. Kindly login first or Server issue'
+                209: 'No Such user exist. Kindly login first or Server issue',
+                210: 'Book is successfully bookmarked.',
+                211: 'Bookmark is successfully removed.'
                 }
     return {'error': switcher(code), 'code': code}
 class BookDetailsView(RetrieveAPIView):
@@ -479,17 +481,21 @@ class BookmarkBook(APIView):
 
     def post(self, request):
         bookid = request.data.get('bookid')
-        
+        data = {
+            'message': '',
+            'bookid': bookid
+        }
         try:
             book = Books.objects.get(id=bookid)
             try:
                 book = Books.objects.get(id=bookid, bookmark__id=request.user.id)
                 book.bookmark.remove(Account.objects.get(id = request.user.id))
+                data['message'] = 'Bookmark is successfully removed.'
             except Books.DoesNotExist:
                 book.bookmark.add(Account.objects.get(id = request.user.id)) 
                 UserCollection.objects.get_or_create(user=request.user, book_id=book)
-            #book = Books.objects.filter(id=bookid, bookmark__id=request.user.id)
-            return Response(BooksSerializer(book).data)
+                data['message'] = 'Book is successfully bookmarked.'
+            return Response(data)
         except Books.DoesNotExist:
             book = {'error': 'Book does not exist. You cannot bookmark this.', 'code': 400}
             return Response(book)
