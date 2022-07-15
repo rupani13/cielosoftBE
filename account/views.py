@@ -350,7 +350,9 @@ def proceed_to_login(
 		"password2":username+"ZZ_bookatease"
 	}
     context = {}
-    if validate_username(username)!= None and validate_email(email) != None:
+    print(validate_username(username))
+    print(validate_email(email))
+    if validate_email(email) != None:
 
         account = Account.objects.get(email=email)
         token_server = Token.objects.get(user=account)
