@@ -16,4 +16,4 @@ class AuthorSerializer(serializers.ModelSerializer):
     author_name = serializers.ReadOnlyField(source="account.name")
     class Meta:
         model = Author
-        fields = ['id', 'author_name', 'hobbies', 'profilepicture', 'books']
+        fields = ['id', 'author_name', 'intro', 'hobbies', 'profilepicture', 'books']
