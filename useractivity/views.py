@@ -1,3 +1,4 @@
+from unicodedata import name
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from rest_framework.response import Response
@@ -34,13 +35,21 @@ class UserActivityView(APIView):
 
 
 class FeedbackView(APIView):
+    model = UserFeedback
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
 
     def post(self, request):
-        email = request.data.get('email')
+        name = request.data.get('name')
         comment = request.data.get('comment')
-        UserFeedback.objects.create(email=email, comment=comment)
-        return Response({"email": email, 
-            "feedback": comment, 
+        try:
+            email = request.user
+            UserFeedback.objects.create(email=email, name=name, comment=comment)
+            return Response({
+                "code": 200, 
             "message": "Thanks your feedback recorded"})
-        
+        except Exception:
+            return Response({
+                "code": 400, 
+            "message": "Server Error"})
 

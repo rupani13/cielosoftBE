@@ -16,6 +16,8 @@ class UserActivity(models.Model):
         return str(self.date)
 
 class UserFeedback(models.Model):
-
-	email = models.EmailField(max_length=255)
-	comment = models.TextField()
+    email = models.EmailField(max_length=255)
+    name = models.CharField(max_length=30,null=True, blank=True)
+    comment = models.TextField()
+    def __str__(self):
+        return str(self.name)
