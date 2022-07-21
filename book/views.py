@@ -40,6 +40,7 @@ from.forms import ChapterForm
 from genre.models import Genre
 from genre.api.serializers import GenreSerializer
 from author.api.serializers import AuthorSerializer
+from tools.messages import MESSAGES
 # Create your views here.
 # Books Detials
 # -----------------------------------------------
@@ -51,7 +52,7 @@ def error_response(code):
                 405: 'Please login first',
                 500: 'Server Issue.',
                 201: 'chapter doesnt exist',
-                202: 'To Unlock the new chapter, You have to earn coins.',
+                202: 'To Unlock the new chapter, You have to earn coins. So start reading free books or purchase coins',
                 203: 'select the appropriate book',
                 204: 'Chapter is already unlocked',
                 205: 'Successfully unlock the chapter',
@@ -197,14 +198,14 @@ class BookReadView(APIView):
                             user_act.unlocked_chapter = True
                             user_act.save()
                             return Response({'message': 'Successfully Opened.','login': True, 'unlock': True,'chapter':chapter })  
-                        return Response(**error_response(500), **{'login': True, 'unlock': False})                                 
-                    return Response(**error_response(202),**{'login': True, 'unlock': False})
+                        return Response({'error': MESSAGES["BOOK"][500], 'code': 500, 'login': True, 'unlock': False})                                 
+                    return Response({'error': MESSAGES["BOOK"][202], 'code': 202, 'login': True, 'unlock': False})
                 else:
-                    return Response(**error_response(201),**{'login': True, 'unlock': False})
+                    return Response({'error': MESSAGES["BOOK"][201], 'code': 201, 'login': True, 'unlock': False})
             else:
-               return Response(**error_response(203),**{'login': True, 'unlock': False})
+               return Response({'error': MESSAGES["BOOK"][203], 'code': 203, 'login': True, 'unlock': False})
         else:
-            return Response(**error_response(405),**{'login': False})
+            return Response({'error': MESSAGES["BOOK"][405], 'code': 405, 'login': False})
 
 
 class AddNewBook(APIView):
@@ -252,7 +253,7 @@ class AddNewBook(APIView):
             book_data = BooksSerializer(bookobj).data
 
         except Author.DoesNotExist:
-            book_data = {"error": "Turn on your writer mode first", 'code': 400}
+            book_data = {"error": MESSAGES["BOOK"][406], 'code': 400}
         return Response(book_data)
     
 class AddNewChapter(APIView):
@@ -447,7 +448,7 @@ class UnLockBookChapterView(APIView):
                         #save the updated coins
                         # add this in UserActivity
                         if UnLockBookChapterView.searchBookInUserActivity(self, request.user, bookid, chapter_no) is not None:
-                            return Response(**error_response(204), **{'login': True, 'unlock': True})  
+                            return Response({'error': MESSAGES["BOOK"][204], 'code': 204, 'login': True, 'unlock': True})  
                 
                         if userprofile.coins >= int(coins):
                             user_act_obj, user_act_created = UserActivity.objects.get_or_create(user_id=request.user, book_id_id=bookid, chapter=chapter_no)
@@ -458,14 +459,14 @@ class UnLockBookChapterView(APIView):
                                 user_act.save()
                                 userprofile.coins = userprofile.coins - int(coins)
                                 userprofile.save()              
-                                return Response(**error_response(205), **{'login': True, 'unlock': True})
-                            return Response(**error_response(206), **{'login': True, 'unlock': True})
-                        return Response(**error_response(207), **{'login': True, 'unlock': False})
-                    return Response(**error_response(203), **{'login': True, 'unlock': False})
-                return Response(**error_response(208), **{'login': False, 'unlock': False})
+                                return Response({'error': MESSAGES["BOOK"][205], 'code': 205, 'login': True, 'unlock': True})
+                            return Response({'error': MESSAGES["BOOK"][206], 'code': 206,'login': True, 'unlock': True})
+                        return Response({'error': MESSAGES["BOOK"][207], 'code': 207, 'login': True, 'unlock': False})
+                    return Response({'error': MESSAGES["BOOK"][203], 'code': 203,'login': True, 'unlock': False})
+                return Response({'error': MESSAGES["BOOK"][208], 'code': 208, 'login': False, 'unlock': False})
             except UserProfile.DoesNotExist:
-                return Response(**error_response(209), **{'login': False, 'unlock': False})
-        return Response(**error_response(209), **{'login': False, 'unlock': False})
+                return Response({'error': MESSAGES["BOOK"][209], 'code': 209,'login': False, 'unlock': False})
+        return Response({'error': MESSAGES["BOOK"][209], 'code': 209, 'login': False, 'unlock': False})
 
 
 class BookmarkBook(APIView):
@@ -490,14 +491,14 @@ class BookmarkBook(APIView):
             try:
                 book = Books.objects.get(id=bookid, bookmark__id=request.user.id)
                 book.bookmark.remove(Account.objects.get(id = request.user.id))
-                data['message'] = 'Bookmark is successfully removed.'
+                data['message'] = MESSAGES["BOOK"][211]
             except Books.DoesNotExist:
                 book.bookmark.add(Account.objects.get(id = request.user.id)) 
                 UserCollection.objects.get_or_create(user=request.user, book_id=book)
-                data['message'] = 'Book is successfully bookmarked.'
+                data['message'] = MESSAGES["BOOK"][210]
             return Response(data)
         except Books.DoesNotExist:
-            book = {'error': 'Book does not exist. You cannot bookmark this.', 'code': 400}
+            book = {'error': MESSAGES["BOOK"][212], 'code': 400}
             return Response(book)
 
 class ChaptersByBook(APIView):
@@ -507,11 +508,11 @@ class ChaptersByBook(APIView):
             book = Books.objects.get(id=request.data.get('bookid'))
             book_response = BooksSerializer(book).data
             try:
-                ChapterSerializer.Meta.fields = ['chapter_no', 'chapter_name', 'state']
+                ChapterSerializer.Meta.fields = ['chapter_no', 'chapter_name', 'state', 'coins']
                 data = Chapter.objects.filter(book_id = book)
                 response = {**book_response, 'chapter':  ChapterSerializer(data, many=True).data}
             except Chapter.DoesNotExist:
                 response = {**book_response, 'chapter': []}
         except Books.DoesNotExist:
-            response = {'error': 'Kindly Select the apporiate book.', 'code': 400}
+            response = {'error': MESSAGES["BOOK"][203], 'code': 400}
         return Response(response)

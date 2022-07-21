@@ -1,3 +1,4 @@
+from operator import contains
 from django.db import models
 from enumchoicefield import ChoiceEnum, EnumChoiceField
 from author.models import Author
@@ -59,6 +60,7 @@ class Chapter(models.Model):
     chapter_url             = models.FileField(upload_to = 'static/chapters', default = '')
     state                   = EnumChoiceField(enum_class=State , default=State.free)
     book_id                 = models.ForeignKey(Books, on_delete=models.CASCADE, default=None)
+    coins                   = models.IntegerField(default=30)
 
     def __str__(self):
         return self.chapter_name
