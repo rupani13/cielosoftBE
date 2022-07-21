@@ -276,7 +276,6 @@ class AddNewChapter(APIView):
                 chapter_obj.chapter_url=chapter_url
                 chapter_obj.save()
             except Chapter.DoesNotExist:
-                print("not book")
                 chapter_obj = Chapter.objects.create(chapter_no=chapter_no,chapter_name=chapter_name,
                                                     chapter_url=chapter_url,
                                        book_id_id=bookobj.id, 
@@ -443,7 +442,6 @@ class UnLockBookChapterView(APIView):
             try:
                 userprofile = UserProfile.objects.get(user_id = request.user)
                 if userprofile is not None:
-                    print(userprofile)
                     if UnLockBookChapterView.searchBook(self, bookid, bookname):
                         #save the updated coins
                         # add this in UserActivity
@@ -484,7 +482,8 @@ class BookmarkBook(APIView):
         bookid = request.data.get('bookid')
         data = {
             'message': '',
-            'bookid': bookid
+            'bookid': bookid,
+            'bookmark': False
         }
         try:
             book = Books.objects.get(id=bookid)
@@ -492,10 +491,12 @@ class BookmarkBook(APIView):
                 book = Books.objects.get(id=bookid, bookmark__id=request.user.id)
                 book.bookmark.remove(Account.objects.get(id = request.user.id))
                 data['message'] = MESSAGES["BOOK"][211]
+                data['bookmark'] = False
             except Books.DoesNotExist:
                 book.bookmark.add(Account.objects.get(id = request.user.id)) 
                 UserCollection.objects.get_or_create(user=request.user, book_id=book)
                 data['message'] = MESSAGES["BOOK"][210]
+                data['bookmark'] = True
             return Response(data)
         except Books.DoesNotExist:
             book = {'error': MESSAGES["BOOK"][212], 'code': 400}
