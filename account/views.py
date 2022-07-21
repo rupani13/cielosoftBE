@@ -350,8 +350,6 @@ def proceed_to_login(
 		"password2":username+"ZZ_bookatease"
 	}
     context = {}
-    print(validate_username(username))
-    print(validate_email(email))
     if validate_email(email) != None:
 
         account = Account.objects.get(email=email)
