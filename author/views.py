@@ -68,7 +68,10 @@ class AuthorProfileView(APIView):
         return Response(data)
 
     def post(self, request):
-        data = AuthorSerializer(Author.objects.get(id=request.data.get('author')), context={"request": request}).data
+        try:
+            data = AuthorSerializer(Author.objects.get(id=request.data.get('author')), context={"request": request}).data
+        except Author.DoesNotExist:
+            data = {"error": "Author does not exist", "code": 400}
         return Response(data)
 
 class WriterCreate(APIView):
