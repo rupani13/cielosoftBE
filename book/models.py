@@ -5,8 +5,18 @@ from author.models import Author
 from genre.models import Genre
 from languages.fields import LanguageField
 from account.models import Account
+from django.core.files.storage import default_storage
+import os
 # Create your models here.
 
+
+def book_cloud_upload(instance, file_name):
+    file_path = os.path.join('static/books', str(instance.id), file_name)
+    return file_path
+
+def chapter_cloud_upload(instance, file_name):
+    file_path = os.path.join('static/books', str(instance.book_id.id), 'chapters', file_name)
+    return file_path
 class State(ChoiceEnum):
     locked       = "Locked"
     unlocked     = "Un-Locked"
@@ -32,7 +42,7 @@ class BookDetails(models.Model):
     
 class Books(models.Model):
     book_name               = models.CharField(max_length=254)
-    book_cover_url          = models.ImageField(upload_to = 'static/books', default = '')
+    book_cover_url          = models.ImageField(upload_to = book_cloud_upload, default = '')
     chapters                = models.IntegerField(default=0)
     view                    = models.IntegerField(default=0)
     published_time          = models.DateField(blank=True, null=True)
@@ -46,9 +56,9 @@ class Books(models.Model):
     language                = LanguageField(default='en', max_length=100)
     status                  = EnumChoiceField(enum_class=BookStatus , default=BookStatus.draft)
     bookmark                = models.ManyToManyField(Account, blank=True)
-    book_preface            = models.FileField(upload_to = 'static/book_preface', default = '')
-    book_copyright          = models.FileField(upload_to = 'static/book_copyright', default = '')
-    book_acknowledgement    = models.FileField(upload_to = 'static/book_acknowledgement', default = '')
+    book_preface            = models.FileField(upload_to = book_cloud_upload, default = '')
+    book_copyright          = models.FileField(upload_to = book_cloud_upload, default = '')
+    book_acknowledgement    = models.FileField(upload_to = book_cloud_upload, default = '')
     policy_agreement        = models.BooleanField(default=False)
     def __str__(self):
         return self.book_name
@@ -57,7 +67,7 @@ class Chapter(models.Model):
 
     chapter_no              = models.PositiveIntegerField(null=True, blank=True)
     chapter_name            = models.CharField(max_length=100)
-    chapter_url             = models.FileField(upload_to = 'static/chapters', default = '')
+    chapter_url             = models.FileField(upload_to = chapter_cloud_upload, default = '')
     state                   = EnumChoiceField(enum_class=State , default=State.free)
     book_id                 = models.ForeignKey(Books, on_delete=models.CASCADE, default=None)
     coins                   = models.IntegerField(default=30)
