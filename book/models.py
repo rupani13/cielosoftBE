@@ -37,7 +37,7 @@ class BookDetails(models.Model):
     
 
     def __str__(self):
-        return str(self.view)
+        return str(self.id)
 
     
 class Books(models.Model):
