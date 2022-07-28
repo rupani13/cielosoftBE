@@ -42,9 +42,10 @@ class FeedbackView(APIView):
     def post(self, request):
         name = request.data.get('name')
         comment = request.data.get('comment')
+        rating = request.data.get('rating')
         try:
             email = request.user
-            UserFeedback.objects.create(email=email, name=name, comment=comment)
+            UserFeedback.objects.create(email=email, name=name, comment=comment, rating=rating)
             return Response({
                 "code": 200, 
             "message": "Thanks your feedback recorded"})

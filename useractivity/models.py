@@ -1,7 +1,7 @@
 from django.db import models
 from book.models import Books
 from account.models import Account
-
+from django.core.validators import MinValueValidator, MaxValueValidator
 # Create your models here.
 class UserActivity(models.Model):
     
@@ -19,5 +19,7 @@ class UserFeedback(models.Model):
     email = models.EmailField(max_length=255)
     name = models.CharField(max_length=30,null=True, blank=True)
     comment = models.TextField()
+    rating = models.IntegerField(default=0, validators=[MinValueValidator(0),
+                                       MaxValueValidator(5)])
     def __str__(self):
         return str(self.name)

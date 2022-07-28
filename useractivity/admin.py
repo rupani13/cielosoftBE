@@ -5,4 +5,8 @@ from useractivity.models import UserActivity, UserFeedback
 @admin.register(UserActivity)
 class UserActivityAdmin(admin.ModelAdmin):
     list_display = [fields.name for fields in UserActivity._meta.get_fields()][1:]
-admin.site.register(UserFeedback)
+
+class UserFeedbackAdmin(admin.ModelAdmin):
+    list_display = ('id', 'email', 'name', 'rating')
+
+admin.site.register(UserFeedback, UserFeedbackAdmin)
