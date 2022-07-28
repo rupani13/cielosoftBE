@@ -37,7 +37,8 @@ class AuthorView(ListAPIView):
     
     def get(self, request, *args, **kwargs):
         search = request.query_params.get('search')
-        StandardResultsSetPagination.page_size=10
+        limit = request.query_params.get('limit')
+        StandardResultsSetPagination.page_size=int(limit)
         if search:
             serializer = AuthorSerializer(Author.objects.all().order_by('id').filter(account__name__icontains=search), context={"request": request}, many=True)
         else:
