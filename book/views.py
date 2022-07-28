@@ -252,11 +252,10 @@ class AddNewBook(APIView):
                 except Books.DoesNotExist:
                     return Response({"error": MESSAGES["BOOK"][203], 'code': 200})
             else:
-                bookdetails_obj = BookDetails.objects.create(view=0,upvote=0,downvote=0)
                 bookobj = Books.objects.create(book_name=book_name, book_cover_url = '',
                                     book_brief_info = book_brief_info,genre_id = genre_obj.id,
                                     language = language, status = BookStatus.draft, author_id=author.id, 
-                                    book_details_id=bookdetails_obj.id,
+                                    book_details_id=BookDetails.objects.create(view=0,upvote=0,downvote=0).id,
                                     book_preface='', book_copyright='', 
                                     book_acknowledgement='', 
                                     policy_agreement=policy_agreement)
