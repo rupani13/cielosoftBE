@@ -24,6 +24,7 @@ class UserProfileView(APIView):
     def get(self, request):
         try:
             user_activity_list = UserProfile.objects.get(user_id=request.user.id)
+            AccountPropertiesSerializer.Meta.fields.extend(['email', 'username'])
             data = {}
             print(request.user, type(request.user))
             serialzer = UserProfileSerializer(user_activity_list)
