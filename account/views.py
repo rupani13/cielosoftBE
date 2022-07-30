@@ -148,17 +148,18 @@ def update_account_view(request):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'PUT':
-
+        
         serializer = AccountPropertiesSerializer(account,
                 data=request.data)
 
         data = {}
         if serializer.is_valid():
             serializer.save()
-            data['response'] = 'Account update success'
+            data['message'] = 'Account updated successfully.'
             return Response(data=data)
-        return Response(serializer.errors,
-                        status=status.HTTP_400_BAD_REQUEST)
+        data['error'] = serializer.errors
+        data['code'] = status.HTTP_400_BAD_REQUEST
+        return Response(data=data)
 
 
 # LOGIN
@@ -180,7 +181,7 @@ class ObtainAuthTokenView(APIView):
                 token = Token.objects.get(user=account)
             except Token.DoesNotExist:
                 token = Token.objects.create(user=account)
-            context['response'] = 'Successfully authenticated.'
+            context['message'] = 'Successfully authenticated.'
             context['pk'] = account.pk
             context['email'] = email.lower()
             context['token'] = token.key
@@ -202,9 +203,10 @@ def does_account_exist_view(request):
         data = {}
         try:
             account = Account.objects.get(email=email)
-            data['response'] = email
+            data['message'] = email
         except Account.DoesNotExist:
-            data['response'] = 'Account does not exist'
+            data['code'] = 400
+            data['error'] = 'Account does not exist'
         return Response(data)
 
 
@@ -251,7 +253,7 @@ class ChangePasswordView(UpdateAPIView):
             self.object.set_password(serializer.data.get('new_password'
                     ))
             self.object.save()
-            return Response({'response': 'successfully changed password'
+            return Response({'message': 'successfully changed password'
                             }, status=status.HTTP_200_OK)
 
         return Response(serializer.errors,
@@ -354,7 +356,7 @@ def proceed_to_login(
 
         account = Account.objects.get(email=email)
         token_server = Token.objects.get(user=account)
-        context['response'] = 'Successfully authenticated.'
+        context['message'] = 'Successfully authenticated.'
         context['pk'] = account.pk
         context['email'] = email
         context['token'] = token_server.key
