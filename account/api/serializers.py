@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from account.models import Account
 from django_countries import Countries
-
+from phonenumber_field.modelfields import PhoneNumberField
 class SerializableCountryField(serializers.ChoiceField):
     def __init__(self, **kwargs):
         super(SerializableCountryField, self).__init__(choices=Countries())
@@ -39,9 +39,12 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 class AccountPropertiesSerializer(serializers.ModelSerializer):
 	nationality = SerializableCountryField(allow_blank=True, choices=Countries())
+	birth_date = serializers.DateField()
+	phone = PhoneNumberField()
+	
 	class Meta:
 		model = Account
-		fields = ['pk', 'email', 'username', 'name', 'nationality', 'birth_date', 'phone']
+		fields = ['pk', 'name', 'nationality', 'birth_date', 'phone']
 
 
 class ChangePasswordSerializer(serializers.Serializer):
