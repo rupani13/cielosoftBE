@@ -6,7 +6,7 @@ class Author(models.Model):
     account = models.ForeignKey(Account, on_delete=models.CASCADE)
     book_count              = models.IntegerField(default=0)
     app_id                  = models.BigIntegerField
-    profilepicture          = models.ImageField(upload_to = 'static/profile', default = '')
+    profilepicture          = models.ImageField(upload_to = 'static/profile', default = '', blank=True, null=True)
     hobbies                 = models.TextField(blank=True, null=True)
     intro                   = models.TextField(blank=True, null=True)
     def __str__(self):
