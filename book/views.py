@@ -99,7 +99,7 @@ class BooksView(APIView):
                 queryset = backend().filter_queryset(self.request, queryset, self)
             return queryset
         limit = request.query_params.get('limit')
-        paginator = Paginator(filter_queryset(Books.objects.all()), int(limit))
+        paginator = Paginator(filter_queryset(Books.objects.filter(status=BookStatus.published)), int(limit))
         page = request.query_params.get('page')
         try:
             books = paginator.page(page)
