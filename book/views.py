@@ -517,6 +517,8 @@ class BookmarkBook(APIView):
             return Response(book)
 
 class ChaptersByBook(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
     def post(self, request):
         BooksSerializer.Meta.fields = ['book_preface', 'book_copyright', 'book_acknowledgement']
         try:
@@ -524,10 +526,30 @@ class ChaptersByBook(APIView):
             book_response = BooksSerializer(book).data
             try:
                 ChapterSerializer.Meta.fields = ['chapter_no', 'chapter_name', 'state', 'coins']
-                data = Chapter.objects.filter(book_id = book)
-                response = {**book_response, 'chapter':  ChapterSerializer(data, many=True).data}
+                chapters = Chapter.objects.filter(book_id = book)
+                updated_chapter = []
+                for d in chapters:
+                    try:
+                        user_act = UserActivity.objects.get(user_id=request.user, book_id_id=book, chapter=d.chapter_no)
+                        d.state = State.free
+                        updated_chapter.append(ChapterSerializer(d).data)
+                    except UserActivity.DoesNotExist:
+                        updated_chapter.append(ChapterSerializer(d).data)
+                response = {**book_response, 'chapter':  updated_chapter}
             except Chapter.DoesNotExist:
                 response = {**book_response, 'chapter': []}
         except Books.DoesNotExist:
             response = {'error': MESSAGES["BOOK"][203], 'code': 400}
         return Response(response)
+
+    
+class DeleteBook(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    def post(self, request):
+        try:
+            book = Books.objects.get(id=request.data.get('bookid'))
+            book.delete() 
+        except Books.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        return Response({'message':MESSAGES["BOOK"][213]}, status=status.HTTP_200_OK)
