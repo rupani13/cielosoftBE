@@ -24,6 +24,7 @@ MESSAGES = {
         209: 'No Such user exist. Kindly login first or Server issue',
         210: 'Book is successfully bookmarked.',
         211: 'Bookmark is successfully removed.',
-        212: 'Book does not exist. You cannot bookmark this.'
+        212: 'Book does not exist. You cannot bookmark this.',
+        213: 'Book is deleted successfully.'
     },
 }
