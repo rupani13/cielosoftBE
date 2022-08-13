@@ -188,8 +188,9 @@ class BookReadView(APIView):
                 if _chapter is not None:
                     if not BookReadView.searchBookInUserCollection(self, request.user, bookid):
                         book = Books.objects.get(id=bookid)
-                        book.book_details.view=book.book_details.view+1
-                        book.save()
+                        book_details= BookDetails.objects.get(id=book.book_details.id)
+                        book_details.view=book_details.view+1
+                        book_details.save()
                         UserCollection.objects.get_or_create(user=request.user, book_id=book)
                     chapter = ChapterSerializer(_chapter, context={"request": request}).data
                     if BookReadView.searchBookInUserActivity(self, request.user, bookid, chapter_no) is not None:
