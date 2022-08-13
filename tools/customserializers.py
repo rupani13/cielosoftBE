@@ -12,4 +12,4 @@ class BookLatestSerializer(BooksSerializer):
 
     class Meta:
         model = Books
-        fields = ['id', 'book_name', 'book_cover_url']
+        fields = ['id', 'book_name', 'book_cover_url', 'author', 'genre']
