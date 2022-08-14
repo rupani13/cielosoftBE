@@ -421,8 +421,8 @@ def search(request):
 class LatestView(APIView):
     def get(self, request):
         data = dict()
-        data['latest'] = BookLatestSerializer(Books.objects.all().order_by('published_time')[:5], context={"request": request}, many=True).data
-        data['deals'] = BookLatestSerializer(Books.objects.all().order_by('ranking')[:5], context={"request": request}, many=True).data
+        data['latest'] = BookLatestSerializer(Books.objects.filter(status=BookStatus.published).order_by('published_time')[:5], context={"request": request}, many=True).data
+        data['deals'] = BookLatestSerializer(Books.objects.filter(status=BookStatus.published).order_by('ranking')[:5], context={"request": request}, many=True).data
         return Response(data)
   
 # unlock the locked chapter
