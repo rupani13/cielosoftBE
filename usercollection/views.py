@@ -8,7 +8,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from django.contrib.auth import authenticate
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
-from book.models import Books
+from book.models import Books,BookStatus
 from usercollection.models import UserCollection
 from usercollection.api.serializers import UserCollectionSerializer
 from book.api.serializers import BooksSerializer
@@ -27,7 +27,7 @@ class UserCollectionView(APIView):
             booksid = UserCollection.objects.filter(user__id=request.user.id).values_list('book_id', flat=True)    
         except UserCollection.DoesNotExist:
             booksid = []
-        books = Books.objects.filter(id__in=booksid)
+        books = Books.objects.filter(id__in=booksid, status=BookStatus.published)
         class apibookserializer(BooksSerializer):
             author = serializers.CharField(source='author.id')
             genre = serializers.CharField(source='genre.genre_name')
