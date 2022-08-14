@@ -20,5 +20,6 @@ urlpatterns = [
     path('unlockbookchapter/', UnLockBookChapterView.as_view()),
     path('addNewChapter', AddNewChapter.as_view()),
     path('bookmark', BookmarkBook.as_view()),
-    path('chaptersByBook', ChaptersByBook.as_view()),
+    path('chaptersByBook', ChaptersByBook.as_view()), 
+    path('deleteBook', DeleteBook.as_view()),
 ]
