@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from author.models import Author
-from author.api.serializers import AuthorSerializer, AuthorProfileSerializer
+from author.api.serializers import AuthorSerializer, AuthorProfileSerializer, WriterSerializer
 from tools.pagination import StandardResultsSetPagination
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -89,3 +89,16 @@ class WriterCreate(APIView):
         else:
             response_data = error_code(201)
         return Response(response_data)
+
+    
+class WriterBooks(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    def get(self, request):
+        try:
+            data = Author.objects.get(account_id=request.user.id)
+        except Author.DoesNotExist:
+            data = Author.objects.create(account_id = request.user.id)
+        response_data = WriterSerializer(data, context={"request": request}).data  
+        return Response(response_data)
+    
