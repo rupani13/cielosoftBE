@@ -230,7 +230,15 @@ class AddNewBook(APIView):
         book_acknowledgement = request.data.get('acknowledgement')
         policy_agreement = request.data.get('policy_agreement')
 
+        class CommentSerializer(CommentsSerializer):
+            email = serializers.CharField(source = 'user_id.email')
+            username = serializers.CharField(source = 'user_id.username')
+            
         class BookSerializer(BooksSerializer):
+            upvote = serializers.CharField(source='book_details.upvote')
+            downvote = serializers.CharField(source='book_details.downvote')
+            view = serializers.CharField(source='book_details.view')
+            comments = CommentSerializer(many=True, read_only=True)
             genre = serializers.CharField(source='genre.genre_name')
             author = serializers.CharField(source='author.account.name')
         
@@ -241,16 +249,25 @@ class AddNewBook(APIView):
             if request.data.get('bookid'):
                 try:
                     bookobj = Books.objects.get(id=request.data.get('bookid'))
-                    bookobj.book_name = book_name
-                    bookobj.book_cover_url = book_cover_url
-                    bookobj.book_brief_info = book_brief_info
-                    bookobj.genre_id = genre_obj.id
-                    bookobj.language = language.capitalize()
+                    if book_name:
+                        bookobj.book_name = book_name
+                    if book_cover_url:
+                        bookobj.book_cover_url = book_cover_url
+                    if book_brief_info:
+                        bookobj.book_brief_info = book_brief_info
+                    if genre_obj:
+                        bookobj.genre_id = genre_obj.id
+                    if language:
+                        bookobj.language = language.capitalize()
+                    if book_preface:
+                        bookobj.book_preface = book_preface
+                    if book_copyright:
+                        bookobj.book_copyright = book_copyright
+                    if book_acknowledgement:
+                        bookobj.book_acknowledgement = book_acknowledgement
+                    if policy_agreement:
+                        bookobj.policy_agreement = policy_agreement
                     bookobj.status = BookStatus.review
-                    bookobj.book_preface = book_preface
-                    bookobj.book_copyright = book_copyright
-                    bookobj.book_acknowledgement = book_acknowledgement
-                    bookobj.policy_agreement = policy_agreement
                     bookobj.save()
                 except Books.DoesNotExist:
                     return Response({"error": MESSAGES["BOOK"][203], 'code': 200})
