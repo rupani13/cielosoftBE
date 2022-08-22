@@ -21,7 +21,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 class WriterSerializer(serializers.ModelSerializer):
     
     books = BooksSerializer(many=True, read_only=True)
-    author_name = serializers.ReadOnlyField(source="account.name")
+    #author_name = serializers.ReadOnlyField(source="account.name")
     class Meta:
         model = Author
-        fields = ['id', 'author_name', 'profilepicture', 'books']
+        fields = ['books']
