@@ -100,5 +100,6 @@ class WriterBooks(APIView):
         except Author.DoesNotExist:
             data = Author.objects.create(account_id = request.user.id)
         response_data = WriterSerializer(data, context={"request": request}).data  
-        return Response(response_data)
+        author = AuthorProfileSerializer(data).data
+        return Response({**author,**response_data})
     
