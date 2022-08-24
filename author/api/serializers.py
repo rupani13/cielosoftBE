@@ -5,10 +5,11 @@ from book.api.serializers import BooksSerializer
 
 
 class AuthorProfileSerializer(serializers.ModelSerializer):
-
+    author_name = serializers.ReadOnlyField(source="account.name")
     class Meta:
         model = Author
-        fields = '__all__'
+        fields = ['id', 'author_name', 'intro', 'hobbies', 'profilepicture']
+
 
 class AuthorSerializer(serializers.ModelSerializer):
 
