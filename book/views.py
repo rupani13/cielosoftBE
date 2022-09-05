@@ -314,10 +314,12 @@ class AddNewChapter(APIView):
                                                     chapter_url=chapter_url,
                                        book_id_id=bookobj.id, 
                                        state= State.free if int(chapter_no) <=5 else State.locked) 
-            chapter_serializer = ChapterSerializer(chapter_obj).data
             chapter_count = Chapter.objects.filter(book_id=book_id)
             bookobj.chapters = len(chapter_count)
             bookobj.save()
+            ChapterSerializer.Meta.fields = ['chapter_no', 'chapter_name', 'state', 'coins', 'chapter_url']
+            chapters = Chapter.objects.filter(book_id = request.data.get('bookid'))
+            chapter_serializer = ChapterSerializer(chapters, many=True, context={"request": request}).data
         except Books.DoesNotExist:
             chapter_serializer = {"error": "Book does not exist.", 'code': 400}
         return Response(chapter_serializer)
@@ -449,6 +451,13 @@ class UnLockBookChapterView(APIView):
     permission_classes = (IsAuthenticated,)
     authentication_classes = (TokenAuthentication,)
 
+    def searchBookChapter(self, _book_id, _chapter):
+        try:
+            _chapter = Chapter.objects.get(book_id=_book_id, chapter_no=_chapter)
+            return _chapter
+        except Chapter.DoesNotExist:
+            return None
+
     def searchBook(self, _id, _name):
         try:
             book = Books.objects.get(id=_id)
@@ -479,10 +488,16 @@ class UnLockBookChapterView(APIView):
                     if UnLockBookChapterView.searchBook(self, bookid, bookname):
                         #save the updated coins
                         # add this in UserActivity
-                        if UnLockBookChapterView.searchBookInUserActivity(self, request.user, bookid, chapter_no) is not None:
-                            return Response({'error': MESSAGES["BOOK"][204], 'code': 204, 'login': True, 'unlock': True})  
+                        chapterobj = UnLockBookChapterView.searchBookChapter(self, bookid, chapter_no)
+                        print(chapterobj)
+                        if chapterobj is None:
+                            chapterobj = {}
+                        if UnLockBookChapterView.searchBookInUserActivity(self, request.user, bookid, chapter_no) is not None: 
+                            chapter = ChapterSerializer(chapterobj).data
+                            return Response({'error': MESSAGES["BOOK"][204], 'code': 204, 'login': True, 'unlock': True, 'chapter': chapter})  
                 
                         if userprofile.coins >= int(coins):
+                            chapter = ChapterSerializer(chapterobj).data
                             user_act_obj, user_act_created = UserActivity.objects.get_or_create(user_id=request.user, book_id_id=bookid, chapter=chapter_no)
                             if user_act_created:
                                 user_act = UserActivity.objects.get(user_id=request.user, book_id_id=bookid, chapter=chapter_no)
@@ -490,9 +505,9 @@ class UnLockBookChapterView(APIView):
                                 user_act.chapter = chapter_no
                                 user_act.save()
                                 userprofile.coins = userprofile.coins - int(coins)
-                                userprofile.save()              
-                                return Response({'error': MESSAGES["BOOK"][205], 'code': 205, 'login': True, 'unlock': True})
-                            return Response({'error': MESSAGES["BOOK"][206], 'code': 206,'login': True, 'unlock': True})
+                                userprofile.save()             
+                                return Response({'error': MESSAGES["BOOK"][205], 'code': 205, 'login': True, 'unlock': True, 'chapter': chapter})
+                            return Response({'error': MESSAGES["BOOK"][206], 'code': 206,'login': True, 'unlock': True, 'chapter': chapter})
                         return Response({'error': MESSAGES["BOOK"][207], 'code': 207, 'login': True, 'unlock': False})
                     return Response({'error': MESSAGES["BOOK"][203], 'code': 203,'login': True, 'unlock': False})
                 return Response({'error': MESSAGES["BOOK"][208], 'code': 208, 'login': False, 'unlock': False})
