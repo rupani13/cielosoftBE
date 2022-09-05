@@ -580,12 +580,23 @@ class WriterBooks(APIView):
     authentication_classes = (TokenAuthentication,)
     def get(self, request):
         try:
-            author = Author.objects.get(account_id=request.user.id)
-            data = Books.objects.filter(author=author)
+            authorobj = Author.objects.get(account_id=request.user.id)
+            data = Books.objects.filter(author=authorobj)
+
+            class CommentSerializer(CommentsSerializer):
+                email = serializers.CharField(source = 'user_id.email')
+                username = serializers.CharField(source = 'user_id.username')
             class WriterSerializer(BooksSerializer):
+                upvote = serializers.CharField(source='book_details.upvote')
+                downvote = serializers.CharField(source='book_details.downvote')
+                view = serializers.CharField(source='book_details.view')
+                comments = CommentSerializer(many=True, read_only=True)
                 genre = serializers.CharField(source='genre.genre_name')
                 author_intro = serializers.CharField(source='author.intro')
-            WriterSerializer.Meta.fields = ['id', 'book_name', 'book_cover_url', 'book_brief_info', 'genre', 'language', 'status', 'book_preface', 'book_copyright', 'book_acknowledgement', 'author_intro']
+                author = serializers.CharField(source='author.account.name')
+            WriterSerializer.Meta.fields = ['id', 'book_name', 'book_cover_url', 'book_brief_info', 'genre', 
+            'author', 'language', 'status', 'book_preface', 'book_copyright', 'book_acknowledgement', 
+            'author_intro', 'upvote', 'downvote', 'view', 'comments']
             response_data = WriterSerializer(data, many=True, context={"request": request}).data
         except Author.DoesNotExist:
             response_data = []
