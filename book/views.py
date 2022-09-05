@@ -229,18 +229,6 @@ class AddNewBook(APIView):
         book_copyright = request.data.get('copyright')
         book_acknowledgement = request.data.get('acknowledgement')
         policy_agreement = request.data.get('policy_agreement')
-
-        class CommentSerializer(CommentsSerializer):
-            email = serializers.CharField(source = 'user_id.email')
-            username = serializers.CharField(source = 'user_id.username')
-            
-        class BookSerializer(BooksSerializer):
-            upvote = serializers.CharField(source='book_details.upvote')
-            downvote = serializers.CharField(source='book_details.downvote')
-            view = serializers.CharField(source='book_details.view')
-            comments = CommentSerializer(many=True, read_only=True)
-            genre = serializers.CharField(source='genre.genre_name')
-            author = serializers.CharField(source='author.account.name')
         
         try:
             author = Author.objects.get(account_id=request.user.id)
@@ -284,6 +272,18 @@ class AddNewBook(APIView):
                 bookobj.book_copyright = book_copyright
                 bookobj.book_acknowledgement = book_acknowledgement
                 bookobj.save()
+
+            class CommentSerializer(CommentsSerializer):
+                email = serializers.CharField(source = 'user_id.email')
+                username = serializers.CharField(source = 'user_id.username')
+            
+            class BookSerializer(BooksSerializer):
+                upvote = serializers.CharField(source='book_details.upvote')
+                downvote = serializers.CharField(source='book_details.downvote')
+                view = serializers.CharField(source='book_details.view')
+                comments = CommentSerializer(many=True, read_only=True)
+                genre = serializers.CharField(source='genre.genre_name')
+                author = serializers.CharField(source='author.account.name')
             book_data = BookSerializer(bookobj).data
 
         except Author.DoesNotExist:
@@ -573,3 +573,21 @@ class DeleteBook(APIView):
         except Books.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
         return Response({'message':MESSAGES["BOOK"][213]}, status=status.HTTP_200_OK)
+
+
+class WriterBooks(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    def get(self, request):
+        try:
+            author = Author.objects.get(account_id=request.user.id)
+            data = Books.objects.filter(author=author)
+            class WriterSerializer(BooksSerializer):
+                genre = serializers.CharField(source='genre.genre_name')
+                author_intro = serializers.CharField(source='author.intro')
+            WriterSerializer.Meta.fields = ['id', 'book_name', 'book_cover_url', 'book_brief_info', 'genre', 'language', 'status', 'book_preface', 'book_copyright', 'book_acknowledgement', 'author_intro']
+            response_data = WriterSerializer(data, many=True, context={"request": request}).data
+        except Author.DoesNotExist:
+            response_data = []
+          
+        return Response(response_data)

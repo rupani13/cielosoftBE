@@ -1,7 +1,7 @@
 from django.urls import path
 from book.views import (BookDetailsView, AddNewBook, BooksView, BookReadView, 
 BookInfoView, upvote, downvote, comment, search, LatestView, UnLockBookChapterView, AddNewChapter,
-BookmarkBook, ChaptersByBook, DeleteBook)
+BookmarkBook, ChaptersByBook, DeleteBook, WriterBooks)
 
 app_name = 'book'
 
@@ -22,4 +22,5 @@ urlpatterns = [
     path('bookmark', BookmarkBook.as_view()),
     path('chaptersByBook', ChaptersByBook.as_view()), 
     path('deleteBook', DeleteBook.as_view()),
+    path('writerbooks', WriterBooks.as_view()),
 ]
