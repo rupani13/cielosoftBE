@@ -10,10 +10,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from author.models import Author
-from author.api.serializers import AuthorSerializer, AuthorProfileSerializer, WriterSerializer
+from author.api.serializers import AuthorSerializer, AuthorProfileSerializer
 from tools.pagination import StandardResultsSetPagination
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from book.api.serializers import BooksSerializer
 from account.models import Account
 # Create your views here.
 # Author
@@ -91,15 +92,15 @@ class WriterCreate(APIView):
         return Response(response_data)
 
     
-class WriterBooks(APIView):
-    permission_classes = (IsAuthenticated,)
-    authentication_classes = (TokenAuthentication,)
-    def get(self, request):
-        try:
-            data = Author.objects.get(account_id=request.user.id)
-        except Author.DoesNotExist:
-            data = Author.objects.create(account_id = request.user.id)
-        response_data = WriterSerializer(data, context={"request": request}).data  
-        author = AuthorProfileSerializer(data).data
-        return Response({**author,**response_data})
+# class WriterBooks(APIView):
+#     permission_classes = (IsAuthenticated,)
+#     authentication_classes = (TokenAuthentication,)
+#     def get(self, request):
+#         try:
+#             data = Author.objects.get(account_id=request.user.id)
+#         except Author.DoesNotExist:
+#             data = Author.objects.create(account_id = request.user.id)
+#         response_data = WriterSerializer(data, context={"request": request}).data  
+#         author = AuthorProfileSerializer(data).data
+#         return Response({**author,**response_data})
     

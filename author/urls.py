@@ -1,5 +1,5 @@
 from django.urls import path
-from author.views import AuthorView, AuthorProfileView, WriterCreate, WriterBooks
+from author.views import AuthorView, AuthorProfileView, WriterCreate
 
 app_name = 'author'
 
@@ -8,5 +8,5 @@ urlpatterns = [
 	# path('createbook', AuthorBookCreate.as_view()),
 	path('profile/', AuthorProfileView.as_view()),
  	path('bewriter', WriterCreate.as_view()),
-	path('writerbooks', WriterBooks.as_view()),
+	# path('writerbooks', WriterBooks.as_view()),
 ]
