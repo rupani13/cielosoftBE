@@ -232,7 +232,7 @@ class AddNewBook(APIView):
         
         try:
             author = Author.objects.get(account_id=request.user.id)
-            author.into = author_intro
+            author.intro = author_intro
             author.save()
             if request.data.get('bookid'):
                 try:
@@ -284,7 +284,14 @@ class AddNewBook(APIView):
                 comments = CommentSerializer(many=True, read_only=True)
                 genre = serializers.CharField(source='genre.genre_name')
                 author = serializers.CharField(source='author.account.name')
+                author_intro = serializers.CharField(source='author.intro')
+
+            BookSerializer.Meta.fields = ['id', 'book_name', 'book_cover_url', 'book_brief_info', 'genre', 
+            'author', 'language', 'status', 'book_preface', 'book_copyright', 'book_acknowledgement', 
+            'author_intro', 'upvote', 'downvote', 'view', 'comments']
             book_data = BookSerializer(bookobj).data
+            book_data['author_intro'] = author_intro
+            
 
         except Author.DoesNotExist:
             book_data = {"error": MESSAGES["BOOK"][406], 'code': 400}
@@ -489,7 +496,7 @@ class UnLockBookChapterView(APIView):
                         #save the updated coins
                         # add this in UserActivity
                         chapterobj = UnLockBookChapterView.searchBookChapter(self, bookid, chapter_no)
-                        print(chapterobj)
+                        
                         if chapterobj is None:
                             chapterobj = {}
                         if UnLockBookChapterView.searchBookInUserActivity(self, request.user, bookid, chapter_no) is not None: 
