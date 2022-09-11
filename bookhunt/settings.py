@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'usercollection',
     'userprofile',
     'slider',
+    'order',
     'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -207,3 +208,6 @@ GOOGLE_CLOUD_STORAGE_DEFAULT_CACHE_CONTROL = 'public, max-age: 7200'
 FILE_UPLOAD_HANDLERS = (
     'django.core.files.uploadhandler.MemoryFileUploadHandler',
 )
+
+RAZORPAY_KEY_ID = config("RAZORPAY_KEY_ID", default="")
+RAZORPAY_KEY_SECRET = config("RAZORPAY_KEY_SECRET", default="")
