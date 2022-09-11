@@ -573,7 +573,8 @@ class ChaptersByBook(APIView):
                 for d in chapters:
                     try:
                         user_act = UserActivity.objects.get(user_id=request.user, book_id_id=book, chapter=d.chapter_no)
-                        d.state = State.free
+                        if d.state is State.locked:
+                            d.state = State.free
                         updated_chapter.append(ChapterSerializer(d).data)
                     except UserActivity.DoesNotExist:
                         updated_chapter.append(ChapterSerializer(d).data)
