@@ -9,6 +9,6 @@ class OrderAdmin(admin.ModelAdmin):
 admin.site.register(Order, OrderAdmin)
 
 class PurchaseCoinAdmin(admin.ModelAdmin):
-    list_display = ('id', 'coins', 'price', 'currency')
+    list_display = ('id', 'coins', 'price', 'unit')
 
 admin.site.register(PurchaseCoin, PurchaseCoinAdmin)

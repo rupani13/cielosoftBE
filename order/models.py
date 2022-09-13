@@ -39,6 +39,6 @@ class PurchaseCoin(models.Model):
     coins                   = models.IntegerField(default=0)
     # price                   = MoneyField(max_digits=14, decimal_places=2, default_currency='USD')
     price                   = models.IntegerField(default=0)
-    currency                = models.CharField(default='USD', max_length=3)
+    unit                = models.CharField(default='USD', max_length=3)
     def __str__(self):
-        return f"self.coins"
+        return f"{self.unit} {self.price}"
