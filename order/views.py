@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-from order.models import Order, PaymentStatus
+from order.models import Order, PaymentStatus, PurchaseCoin
 from django.views.decorators.csrf import csrf_exempt
 import razorpay
 from django.conf import settings
@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from order.api.serializers import PurchaseSerializer
 # Create your views here.
 
 class OrderPayment(APIView):
@@ -30,6 +31,18 @@ class OrderPayment(APIView):
         )
         order.save()
         return Response(order)
+class PurchaseCoins(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    def get(self, request):
+        try:
+            data = PurchaseCoin.objects.all().order_by('coins')
+            purchase = PurchaseSerializer(data, many=True).data
+        except PurchaseCoin.DoesNotExist:
+            purchase = []
+        return Response(purchase)
+
+
 
 def order_payment(request):
     if request.method == "POST":
@@ -71,11 +84,11 @@ def callback(request):
         if not verify_signature(request.POST):
             order.status = PaymentStatus.SUCCESS
             order.save()
-            return render(request, "callback.html", context={"status": order.status})
+            return Response({"status": order.status})
         else:
             order.status = PaymentStatus.FAILURE
             order.save()
-            return render(request, "callback.html", context={"status": order.status})
+            return Response({"status": order.status})
     else:
         payment_id = json.loads(request.POST.get("error[metadata]")).get("payment_id")
         provider_order_id = json.loads(request.POST.get("error[metadata]")).get(
@@ -85,4 +98,4 @@ def callback(request):
         order.payment_id = payment_id
         order.status = PaymentStatus.FAILURE
         order.save()
-        return render(request, "callback.html", context={"status": order.status})
+        return Response({"status": order.status})

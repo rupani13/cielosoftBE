@@ -1,7 +1,10 @@
+from itertools import combinations_with_replacement
+from locale import currency
+from operator import contains
 from django.db import models
 from django.db.models.fields import CharField
 from django.utils.translation import gettext_lazy as _
-
+from djmoney.models.fields import MoneyField
 # Create your models here.
 class PaymentStatus:
     SUCCESS = "Success"
@@ -31,3 +34,11 @@ class Order(models.Model):
 
     def __str__(self):
         return f"{self.id}-{self.name}-{self.status}"
+
+class PurchaseCoin(models.Model):
+    coins                   = models.IntegerField(default=0)
+    # price                   = MoneyField(max_digits=14, decimal_places=2, default_currency='USD')
+    price                   = models.IntegerField(default=0)
+    currency                = models.CharField(default='USD', max_length=3)
+    def __str__(self):
+        return f"self.coins"
