@@ -32,6 +32,8 @@ urlpatterns = [
     path('api/userProfile/', include('userprofile.urls', 'userprofile_api')),
     path('api/slider/', include('slider.urls', 'slider_api')),
     path('api/razorpay/', include('order.urls')),
+    path('privacypolicy', TemplateView.as_view(template_name='privacypolicy.html')),
+    path('termsandconditions', TemplateView.as_view(template_name='termsandconditions.html')),
 ] + static(settings.MEDIA_URL, document_root= settings.MEDIA_ROOT)
 
 # if settings.DEBUG:
