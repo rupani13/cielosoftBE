@@ -4,6 +4,7 @@ from operator import contains
 from django.db import models
 from django.db.models.fields import CharField
 from django.utils.translation import gettext_lazy as _
+from account.models import Account
 from djmoney.models.fields import MoneyField
 # Create your models here.
 class PaymentStatus:
@@ -42,3 +43,17 @@ class PurchaseCoin(models.Model):
     unit                = models.CharField(default='USD', max_length=3)
     def __str__(self):
         return f"{self.unit} {self.price}"
+
+class PurchaseOrder(models.Model):
+    orderid = models.CharField(
+        _("Order ID"), max_length=36, null=False, blank=False, unique=True
+    )
+    coins                   = models.IntegerField(default=0)
+    status = CharField(
+        _("Payment Status"),
+        default=PaymentStatus.PENDING,
+        max_length=254,
+        blank=False,
+        null=False,
+    )
+    userid = models.ForeignKey(Account, on_delete=models.CASCADE)

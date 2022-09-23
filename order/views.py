@@ -1,6 +1,8 @@
 from django.shortcuts import render
+from account.models import Account
+from userprofile.models import UserProfile
 
-from order.models import Order, PaymentStatus, PurchaseCoin
+from order.models import Order, PaymentStatus, PurchaseCoin, PurchaseOrder
 from django.views.decorators.csrf import csrf_exempt
 # import razorpay
 from django.conf import settings
@@ -81,3 +83,31 @@ class PurchaseCoins(APIView):
             purchase = []
         return Response(purchase)
 
+class CallBackStatus(APIView):
+    permission_classes = (IsAuthenticated,)
+    authentication_classes = (TokenAuthentication,)
+    def post(self, request):
+        orderid = request.data.get("orderid")
+        coin = request.data.get("coin")
+        status = request.data.get("status")
+        try:
+            if status.upper()==PaymentStatus.SUCCESS.upper():
+                purchaseorder = PurchaseOrder.objects.create(
+                    orderid=orderid, coins=int(coin), status=PaymentStatus.SUCCESS, userid_id=request.user.id
+                )
+            elif status.upper()==PaymentStatus.PENDING.upper():
+                purchaseorder = PurchaseOrder.objects.create(
+                    orderid=orderid, coins=int(coin), status=PaymentStatus.PENDING, userid_id=request.user.id
+                )
+            else:
+                return Response({'message': 'Payment is failure. we will revert your fund to you in next 7 working days.', "status": PaymentStatus.FAILURE})
+
+            purchaseorder.save()
+            userprofile = UserProfile.objects.get(user_id = request.user)
+            if userprofile is not None:
+                userprofile.coins =  int(userprofile.coins) + int(coin)
+                userprofile.save()
+            return Response({'message': 'Order is created and coins are added successfully.', "status": True})
+        except:
+            return Response({'error': 'Server issue while doing order. Try again after a while.', 'code': 400})
+        
