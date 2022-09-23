@@ -32,7 +32,7 @@ urlpatterns = [
     path('api/userActivity/', include('useractivity.urls', 'useractivity_api')),
     path('api/userProfile/', include('userprofile.urls', 'userprofile_api')),
     path('api/slider/', include('slider.urls', 'slider_api')),
-    #path('api/order/', include('order.urls')),
+    path('api/order/', include('order.urls')),
     path('privacypolicy', TemplateView.as_view(template_name='privacypolicy.html')),
     path('termsandconditions', TemplateView.as_view(template_name='termsandconditions.html')),
 ] + static(settings.MEDIA_URL, document_root= settings.MEDIA_ROOT)
