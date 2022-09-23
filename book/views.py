@@ -129,8 +129,13 @@ class BookInfoView(APIView):
             comments = CommentSerializer(many=True, read_only=True)
             genre = serializers.CharField(source='genre.genre_name')
             author = serializers.CharField(source='author.account.name')
+            author_intro = serializers.CharField(source='author.intro')
+
         bookmark = True if len(Books.objects.filter(id=request.data.get('bookid'), bookmark=request.user)) else False   
-        BookSerializer.Meta.fields = ['id', 'chapters', 'book_name', 'book_cover_url', 'view', 'upvote', 'downvote', 'book_brief_info', 'genre', 'author', 'ranking', 'comments']
+        BookSerializer.Meta.fields = ['id', 'book_name', 'book_cover_url', 'book_brief_info', 'genre', 
+            'author', 'language', 'status', 'book_preface', 'book_copyright', 'book_acknowledgement', 
+            'author_intro', 'upvote', 'downvote', 'view', 'comments', 'ranking', 'chapters']
+        
         data = BookSerializer(books, many=True, context={"request": request}).data
         return Response({"data": data, "bookmark": bookmark, "code": 200})
 
