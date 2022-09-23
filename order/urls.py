@@ -1,7 +1,7 @@
 
 from django.urls import path
 from django.contrib import admin
-from order.views import order_payment, callback, OrderPayment, PurchaseCoins
+from order.views import callback, OrderPayment, PurchaseCoins
 
 urlpatterns = [
 	path("payment/", OrderPayment.as_view(), name="payment"),
