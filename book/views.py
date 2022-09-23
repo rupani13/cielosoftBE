@@ -195,7 +195,7 @@ class BookReadView(APIView):
                     chapter = ChapterSerializer(_chapter, context={"request": request}).data
                     if BookReadView.searchBookInUserActivity(self, request.user, bookid, chapter_no) is not None:
                         return Response({'message': 'Successfully Opened.','login': True, 'unlock': True,'chapter':chapter })
-                    if chapter['state'] == State.free or chapter['state'] == State.bonus:
+                    if chapter['state'].upper()=='FREE' or chapter['state'].upper()=='BONUS':
                         user_act_obj, user_act_created  = UserActivity.objects.get_or_create(user_id=request.user, book_id_id=bookid, chapter = chapter_no)
                         if user_act_created:
                             user_act = UserActivity.objects.get(user_id=request.user, book_id_id=bookid, chapter=chapter_no)
@@ -320,7 +320,7 @@ class AddNewChapter(APIView):
                 chapter_obj = Chapter.objects.create(chapter_no=chapter_no,chapter_name=chapter_name,
                                                     chapter_url=chapter_url,
                                        book_id_id=bookobj.id, 
-                                       state= State.free if int(chapter_no) <=5 else State.locked) 
+                                       state=State.free if int(chapter_no) <=5 else State.locked) 
             chapter_count = Chapter.objects.filter(book_id=book_id)
             bookobj.chapters = len(chapter_count)
             bookobj.save()

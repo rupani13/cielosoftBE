@@ -18,10 +18,10 @@ def chapter_cloud_upload(instance, file_name):
     file_path = os.path.join('static/books', str(instance.book_id.id), 'chapters', file_name)
     return file_path
 class State(ChoiceEnum):
-    locked       = "Locked"
-    unlocked     = "Un-Locked"
-    free         = "Free"
-    bonus        = "Bonus"
+    locked       = "LOCKED"
+    unlocked     = "UNLOCKED"
+    free         = "FREE"
+    bonus        = "BONUS"
     
 class BookStatus(ChoiceEnum):
     draft       = "Draft"
